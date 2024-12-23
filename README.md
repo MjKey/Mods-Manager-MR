@@ -2,6 +2,8 @@
 
 [English](#english) | [Русский](#русский)
 
+![Screenshot App](https://i.imgur.com/84KW9MF.png)
+
 ## English
 
 A simple and convenient mod manager for Marvel Rivals game.
