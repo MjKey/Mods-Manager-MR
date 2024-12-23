@@ -1,0 +1,33 @@
+name: marvel_rivals_mod_manager
+description: Mod Manager for Marvel Rivals
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  file_picker: ^6.1.1
+  path_provider: ^2.1.2
+  provider: ^6.1.1
+  window_size:
+    git:
+      url: https://github.com/google/flutter-desktop-embedding
+      path: plugins/window_size
+  desktop_drop: ^0.4.4
+  animations: ^2.0.11
+  flutter_localizations:
+    sdk: flutter
+  flutter_phoenix: ^1.1.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/
