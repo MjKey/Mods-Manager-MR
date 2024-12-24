@@ -21,6 +21,10 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   flutter_phoenix: ^1.1.1
+  shared_preferences: ^2.2.2
+  archive: ^3.4.9
+  path: ^1.8.3
+  win32: ^5.0.9
 
 dev_dependencies:
   flutter_test:

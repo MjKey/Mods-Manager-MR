@@ -4,7 +4,6 @@ import '../models/app_settings.dart';
 import '../models/mod_manager.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import '../l10n/app_localizations.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 
 class SettingsScreen extends StatefulWidget {
   final ModManager modManager;

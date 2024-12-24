@@ -118,22 +118,23 @@ class _ModManagerHomeState extends State<ModManagerHome> {
   }
 
   Future<bool> _confirmDelete(Mod mod) async {
+    final l10n = AppLocalizations.of(context);
     return await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context).get('delete_mod')),
-        content: Text('${AppLocalizations.of(context).get('delete_mod_confirm')} "${mod.name}"?'),
+        title: Text(l10n.get('delete_mod')),
+        content: Text('${l10n.get('delete_mod_confirm')} "${mod.name}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Отмена'),
+            child: Text(l10n.get('cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: TextButton.styleFrom(
               foregroundColor: Colors.red,
             ),
-            child: const Text('Удалить'),
+            child: Text(l10n.get('delete')),
           ),
         ],
       ),
@@ -222,7 +223,93 @@ class _ModManagerHomeState extends State<ModManagerHome> {
       appBar: AppBar(
           title: Text(l10n.get('app_title')),
           actions: [
-            if (gamePath != null)
+            if (gamePath != null) ...[
+              Tooltip(
+                message: l10n.get('play_game'),
+                child: TextButton.icon(
+                  icon: const Icon(Icons.play_circle_filled, color: Colors.green),
+                  label: Text(l10n.get('play'), style: const TextStyle(color: Colors.white)),
+                  onPressed: () async {
+                    try {
+                      await widget.modManager.launchGame();
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(e.toString()),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(width: 16),
+              Tooltip(
+                message: l10n.get('export_mods'),
+                child: TextButton.icon(
+                  icon: const Icon(Icons.file_upload, color: Colors.white),
+                  label: Text(l10n.get('export'), style: const TextStyle(color: Colors.white)),
+                  onPressed: () async {
+                    final result = await FilePicker.platform.getDirectoryPath();
+                    if (result != null) {
+                      try {
+                        final exportPath = await widget.modManager.exportMods(result);
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('${l10n.get('mods_exported_to')}: $exportPath')),
+                          );
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('${l10n.get('export_error')}: $e'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      }
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              Tooltip(
+                message: l10n.get('import_mods'),
+                child: TextButton.icon(
+                  icon: const Icon(Icons.file_download, color: Colors.white),
+                  label: Text(l10n.get('import'), style: const TextStyle(color: Colors.white)),
+                  onPressed: () async {
+                    final result = await FilePicker.platform.pickFiles(
+                      type: FileType.custom,
+                      allowedExtensions: ['mrmm'],
+                    );
+                    if (result != null) {
+                      try {
+                        final importedMods = await widget.modManager.importMods(result.files.single.path!);
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('${l10n.get('imported_mods_count')}: ${importedMods.length}')),
+                          );
+                          setState(() {});
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('${l10n.get('import_error')}: $e'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      }
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Center(
@@ -232,6 +319,7 @@ class _ModManagerHomeState extends State<ModManagerHome> {
                   ),
                 ),
               ),
+            ],
             IconButton(
               icon: const Icon(Icons.settings),
               onPressed: () async {
@@ -339,12 +427,51 @@ class _ModManagerHomeState extends State<ModManagerHome> {
                                     mod.name,
                                     style: const TextStyle(fontWeight: FontWeight.bold),
                                   ),
-                                  subtitle: widget.modManager.settings.showFileSize
-                                      ? Text(mod.formattedSize)
-                                      : null,
+                                  subtitle: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      if (widget.modManager.settings.showFileSize)
+                                        Text(mod.formattedSize),
+                                      if (mod.tags.isNotEmpty)
+                                        Wrap(
+                                          spacing: 4,
+                                          children: mod.tags.map((tag) {
+                                            return Chip(
+                                              label: Text(tag.getLocalizedLabel(l10n.get)),
+                                              onDeleted: () {
+                                                setState(() {
+                                                  mod.tags.remove(tag);
+                                                  widget.modManager.saveSettings();
+                                                });
+                                              },
+                                            );
+                                          }).toList(),
+                                        ),
+                                    ],
+                                  ),
                                   trailing: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.label),
+                                        tooltip: l10n.get('add_tags'),
+                                        onPressed: () async {
+                                          final selectedTags = await showDialog<Set<ModTag>>(
+                                            context: context,
+                                            builder: (context) => TagSelectionDialog(
+                                              currentTags: mod.tags,
+                                            ),
+                                          );
+                                          if (selectedTags != null) {
+                                            setState(() {
+                                              mod.tags
+                                                ..clear()
+                                                ..addAll(selectedTags);
+                                              widget.modManager.saveSettings();
+                                            });
+                                          }
+                                        },
+                                      ),
                                       Switch(
                                         value: mod.isEnabled,
                                         onChanged: (value) async {
@@ -455,6 +582,66 @@ class _ProgressDialogState extends State<_ProgressDialog> {
           Text('${(_progress * 100).toStringAsFixed(1)}%'),
         ],
       ),
+    );
+  }
+}
+
+class TagSelectionDialog extends StatefulWidget {
+  final Set<ModTag> currentTags;
+
+  const TagSelectionDialog({
+    super.key,
+    required this.currentTags,
+  });
+
+  @override
+  State<TagSelectionDialog> createState() => _TagSelectionDialogState();
+}
+
+class _TagSelectionDialogState extends State<TagSelectionDialog> {
+  late Set<ModTag> selectedTags;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedTags = Set.from(widget.currentTags);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
+    return AlertDialog(
+      title: Text(l10n.get('select_tags')),
+      content: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: ModTag.values.map((tag) {
+          return FilterChip(
+            label: Text(tag.getLocalizedLabel(l10n.get)),
+            selected: selectedTags.contains(tag),
+            onSelected: (selected) {
+              setState(() {
+                if (selected) {
+                  selectedTags.add(tag);
+                } else {
+                  selectedTags.remove(tag);
+                }
+              });
+            },
+          );
+        }).toList(),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.get('cancel')),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(selectedTags),
+          child: Text(l10n.get('save')),
+        ),
+      ],
     );
   }
 }

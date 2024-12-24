@@ -2,6 +2,8 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
+import 'package:archive/archive.dart';
+import 'package:win32/win32.dart';
 import 'mod.dart';
 import 'app_settings.dart';
 
@@ -35,21 +37,52 @@ class ModManager {
         }
         
         if (data['gamePath'] != null) {
-          await setGamePath(data['gamePath']);
-        }
+          gamePath = data['gamePath'];
+          modsPath = path.join(gamePath!, 'MarvelGame', 'Marvel', 'Content', 'Paks', '~mods');
+          final tempDir = await Directory.systemTemp.createTemp('MR-Mods');
+          tempModsPath = tempDir.path;
 
-        if (data['mods'] != null) {
-          final List<dynamic> modsJson = data['mods'];
-          mods.clear();
-          for (final modJson in modsJson) {
-            final mod = Mod.fromJson(modJson);
-            if (await File(mod.path).exists()) {
-              mods.add(mod);
-              if (mod.isEnabled) {
-                await toggleMod(mod); // Восстанавливаем состояние мода
+          // Загружаем сохраненные моды
+          if (data['mods'] != null) {
+            final List<dynamic> modsJson = data['mods'];
+            mods.clear();
+            for (final modJson in modsJson) {
+              final mod = Mod.fromJson(modJson);
+              if (await File(mod.path).exists()) {
+                mods.add(mod);
               }
             }
           }
+
+          // Сканируем папку ~mods
+          final modsDir = Directory(modsPath!);
+          if (await modsDir.exists()) {
+            final enabledFiles = await modsDir.list().where((entity) => 
+              entity is File && entity.path.toLowerCase().endsWith('.pak')
+            ).toList();
+
+            for (final file in enabledFiles) {
+              final fileName = path.basename(file.path);
+              final existingModIndex = mods.indexWhere((mod) => mod.name == fileName);
+              
+              if (existingModIndex != -1) {
+                // Обновляем существующий мод
+                mods[existingModIndex].path = file.path;
+                mods[existingModIndex].isEnabled = true;
+              } else {
+                // Добавляем новый мод
+                final stat = await (file as File).stat();
+                mods.add(Mod(
+                  name: fileName,
+                  path: file.path,
+                  fileSize: stat.size,
+                  isEnabled: true,
+                ));
+              }
+            }
+          }
+
+          await saveSettings();
         }
       }
     } catch (e) {
@@ -116,10 +149,9 @@ class ModManager {
     final modName = path.basename(modPath);
     final fileSize = await modFile.length();
     
-    // Определяем конечный путь в зависимости от настройки autoEnableMods
     final targetPath = settings.autoEnableMods
-        ? path.join(modsPath!, modName)  // Сразу в папку модов
-        : path.join(tempModsPath!, modName);  // Во временную папку
+        ? path.join(modsPath!, modName)
+        : path.join(tempModsPath!, modName);
 
     try {
       await modFile.copy(targetPath);
@@ -128,8 +160,8 @@ class ModManager {
       final mod = Mod(
         name: modName,
         path: targetPath,
-        isEnabled: settings.autoEnableMods,  // Устанавливаем статус в зависимости от настройки
         fileSize: fileSize,
+        isEnabled: settings.autoEnableMods,
       );
 
       mods.add(mod);
@@ -176,6 +208,94 @@ class ModManager {
       await saveSettings();
     } catch (e) {
       throw ModManagerException('Ошибка при удалении мода: ${e.toString()}');
+    }
+  }
+
+  Future<String> exportMods(String exportPath) async {
+    final archive = Archive();
+    final enabledMods = mods.where((mod) => mod.isEnabled).toList();
+    
+    final modsMetadata = enabledMods.map((mod) => mod.toJson()).toList();
+    final metadataBytes = utf8.encode(json.encode(modsMetadata));
+    archive.addFile(ArchiveFile('metadata.json', metadataBytes.length, metadataBytes));
+
+    for (final mod in enabledMods) {
+      final file = File(mod.path);
+      if (await file.exists()) {
+        final bytes = await file.readAsBytes();
+        archive.addFile(ArchiveFile(
+          path.basename(mod.path),
+          bytes.length,
+          bytes,
+        ));
+      }
+    }
+
+    final outputPath = path.join(exportPath, 'mods_export.mrmm');
+    final bytes = ZipEncoder().encode(archive);
+    if (bytes != null) {
+      await File(outputPath).writeAsBytes(bytes);
+    }
+    
+    return outputPath;
+  }
+
+  Future<List<Mod>> importMods(String archivePath) async {
+    final bytes = await File(archivePath).readAsBytes();
+    final archive = ZipDecoder().decodeBytes(bytes);
+    final importedMods = <Mod>[];
+
+    final metadataFile = archive.findFile('metadata.json');
+    if (metadataFile != null) {
+      final metadataJson = utf8.decode(metadataFile.content);
+      final List<dynamic> modsMetadata = json.decode(metadataJson);
+
+      for (final modData in modsMetadata) {
+        final modName = path.basename(modData['path']);
+        final modFile = archive.findFile(modName);
+        
+        if (modFile != null) {
+          final targetPath = path.join(modsPath!, modName);
+          await File(targetPath).writeAsBytes(modFile.content);
+          
+          final mod = Mod(
+            name: modName,
+            path: targetPath,
+            fileSize: modFile.size,
+            isEnabled: true,
+            tags: (modData['tags'] as List<dynamic>?)
+                ?.map((tag) => ModTag.values.firstWhere((e) => e.name == tag))
+                .toSet(),
+          );
+          importedMods.add(mod);
+          mods.add(mod);
+        }
+      }
+    }
+
+    await saveSettings();
+    return importedMods;
+  }
+
+  Future<void> launchGame() async {
+    if (gamePath == null) return;
+    
+    final launcherPath = path.join(gamePath!, 'MarvelRivals_Launcher.exe');
+    if (await File(launcherPath).exists()) {
+      final result = ShellExecute(
+        0, // hwnd
+        TEXT('runas'),  // operation
+        TEXT(launcherPath), // file
+        TEXT(''), // parameters
+        TEXT(gamePath!), // directory
+        SW_SHOW,
+      );
+
+      if (result <= 32) {
+        throw ModManagerException('Ошибка запуска игры: $result');
+      }
+    } else {
+      throw ModManagerException('Лаунчер игры не найден');
     }
   }
 } 
