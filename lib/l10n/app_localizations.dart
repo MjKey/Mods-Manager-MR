@@ -6,7 +6,8 @@ class AppLocalizations {
   AppLocalizations(this.locale);
 
   static AppLocalizations of(BuildContext context) {
-    return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
+    return Localizations.of<AppLocalizations>(context, AppLocalizations) 
+        ?? AppLocalizations(const Locale('en'));
   }
 
   static final Map<String, Map<String, String>> _localizedValues = {
@@ -28,7 +29,7 @@ class AppLocalizations {
       'delete': 'Delete',
       'delete_mod': 'Delete mod',
       'delete_mod_confirm': 'Are you sure you want to delete mod',
-      'drag_drop_instruction': 'Drag .pak files here or click "Add mod" button',
+      'drag_drop_instruction': 'Drag and drop mod files here or use the + button',
       'adding_mod': 'Adding mod',
       'copying_file': 'Copying file',
       'language': 'Language',
@@ -59,6 +60,37 @@ class AppLocalizations {
       'launcher_not_found': 'Game launcher not found',
       'play_game': 'Launch game',
       'play': 'Play',
+      'rename_mod': 'Rename mod',
+      'mod_name': 'Mod name',
+      'enter_new_name': 'Enter new name',
+      'file_name': 'File name',
+      'sort_by': 'Sort by',
+      'sort_by_date': 'By date added',
+      'sort_by_name': 'By name',
+      'sort_by_size': 'By size',
+      'search_mods': 'Search mods',
+      'search_placeholder': 'Search by name or tags',
+      'no_mods_found': 'No mods found',
+      'play_with_steam': 'Play via Steam',
+      'play_with_launcher': 'Play via Launcher',
+      'steam_not_found': 'Steam is not installed',
+      'disabled_mods_folder': 'Disabled mods folder',
+      'disabled_mods_folder_desc': 'Choose where to store disabled mods (by default they are stored in a temporary folder)',
+      'select_folder': 'Select folder',
+      'change_folder': 'Change folder',
+      'select_disabled_mods_folder': 'Select folder for disabled mods',
+      'change_game_folder': 'Change game folder',
+      'game_folder_desc': 'Current game folder path',
+      'game_folder_changed': 'Game folder changed successfully',
+      'add_mod': 'Add mod',
+      'mod_exists': 'Mod already exists',
+      'mod_exists_desc': 'A mod with this name already exists. Do you want to replace it?',
+      'replace': 'Replace',
+      'drop_files_here': 'Drop mod files here',
+      'file_not_found': 'File not found',
+      'invalid_file_format': 'Invalid file format. Only .pak files are supported',
+      'error_copying_file': 'Error copying file',
+      'made_with_love': 'Made with ❤️ by MjKey.ru',
     },
     'ru': {
       'app_title': 'Marvel Rivals Mod Manager',
@@ -78,7 +110,7 @@ class AppLocalizations {
       'delete': 'Удалить',
       'delete_mod': 'Удалить мод',
       'delete_mod_confirm': 'Вы уверены, что хотите удалить мод',
-      'drag_drop_instruction': 'Перетащите .pak файлы сюда или нажмите кнопку "Добавить мод"',
+      'drag_drop_instruction': 'Перетащите файлы модов сюда или используйте кнопку +',
       'adding_mod': 'Добавление мода',
       'copying_file': 'Копирование файла',
       'language': 'Язык',
@@ -109,11 +141,46 @@ class AppLocalizations {
       'launcher_not_found': 'Лаунчер игры не найден',
       'play_game': 'Запустить игру',
       'play': 'Играть',
+      'rename_mod': 'Переименовать мод',
+      'mod_name': 'Название мода',
+      'enter_new_name': 'Введите новое название',
+      'file_name': 'Имя файла',
+      'sort_by': 'Сортировать',
+      'sort_by_date': 'По дате добавления',
+      'sort_by_name': 'По названию',
+      'sort_by_size': 'По размеру',
+      'search_mods': 'Поиск модов',
+      'search_placeholder': 'Поиск по названию или тегам',
+      'no_mods_found': 'Моды не найдены',
+      'play_with_steam': 'Запустить через Steam',
+      'play_with_launcher': 'Запустить через Лаунчер',
+      'steam_not_found': 'Steam не установлен',
+      'disabled_mods_folder': 'Папка для выключенных модов',
+      'disabled_mods_folder_desc': 'Выберите, где хранить выключенные моды (по умолчанию они хранятся во временной папке)',
+      'select_folder': 'Выбрать папку',
+      'change_folder': 'Изменить папку',
+      'select_disabled_mods_folder': 'Выберите папку для выключенных модов',
+      'change_game_folder': 'Изменить папку игры',
+      'game_folder_desc': 'Текущий путь к папке игры',
+      'game_folder_changed': 'Папка игры успешно изменена',
+      'add_mod': 'Добавить мод',
+      'mod_exists': 'Мод уже существует',
+      'mod_exists_desc': 'Мод с таким именем уже существует. Хотите заменить его?',
+      'replace': 'Заменить',
+      'drop_files_here': 'Перетащите файлы модов сюда',
+      'file_not_found': 'Файл не найден',
+      'invalid_file_format': 'Неверный формат файла. Поддерживаются только .pak файлы',
+      'error_copying_file': 'Ошибка копирования файла',
+      'made_with_love': 'Сделано с ❤️ от MjKey.ru',
     },
   };
 
   String get(String key) {
-    return _localizedValues[locale.languageCode]?[key] ?? _localizedValues['en']![key]!;
+    final languageMap = _localizedValues[locale.languageCode];
+    if (languageMap == null) {
+      return _localizedValues['en']?[key] ?? key;
+    }
+    return languageMap[key] ?? _localizedValues['en']?[key] ?? key;
   }
 
   static List<Locale> supportedLocales = [

@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:archive/archive.dart';
-import 'package:win32/win32.dart';
 import 'mod.dart';
 import 'app_settings.dart';
 
@@ -23,6 +22,52 @@ class ModManager {
   static const String _settingsFileName = 'marvel_rivals_mod_manager.json';
   AppSettings settings = AppSettings();
 
+  Future<void> launchGameSteam() async {
+    if (gamePath == null) {
+      throw ModManagerException('Путь к игре не указан');
+    }
+
+    try {
+      final process = await Process.run(
+        'cmd',
+        ['/c', 'start', 'steam://rungameid/2767030'],
+        runInShell: true,
+      );
+
+      if (process.exitCode != 0) {
+        throw ModManagerException('Не удалось запустить игру через Steam');
+      }
+    } catch (e) {
+      throw ModManagerException('Ошибка при запуске игры: ${e.toString()}');
+    }
+  }
+
+  Future<void> launchGameLauncher() async {
+    if (gamePath == null) {
+      throw ModManagerException('Путь к игре не указан');
+    }
+
+    final launcherPath = path.join(gamePath!, 'MarvelRivals_Launcher.exe');
+    if (!await File(launcherPath).exists()) {
+      throw ModManagerException('Лаунчер игры не найден');
+    }
+
+    try {
+      final process = await Process.run(
+        launcherPath,
+        [],
+        workingDirectory: gamePath,
+        runInShell: true,
+      );
+
+      if (process.exitCode != 0) {
+        throw ModManagerException('Не удалось запустить игру через лаунчер');
+      }
+    } catch (e) {
+      throw ModManagerException('Ошибка при запуске игры: ${e.toString()}');
+    }
+  }
+
   Future<void> loadSettings() async {
     try {
       final appDir = await getApplicationSupportDirectory();
@@ -39,10 +84,18 @@ class ModManager {
         if (data['gamePath'] != null) {
           gamePath = data['gamePath'];
           modsPath = path.join(gamePath!, 'MarvelGame', 'Marvel', 'Content', 'Paks', '~mods');
-          final tempDir = await Directory.systemTemp.createTemp('MR-Mods');
-          tempModsPath = tempDir.path;
+          
+          if (settings.disabledModsPath != null) {
+            tempModsPath = settings.disabledModsPath;
+            final tempDir = Directory(tempModsPath!);
+            if (!await tempDir.exists()) {
+              await tempDir.create(recursive: true);
+            }
+          } else {
+            final tempDir = await Directory.systemTemp.createTemp('MR-Mods');
+            tempModsPath = tempDir.path;
+          }
 
-          // Загружаем сохраненные моды
           if (data['mods'] != null) {
             final List<dynamic> modsJson = data['mods'];
             mods.clear();
@@ -54,7 +107,6 @@ class ModManager {
             }
           }
 
-          // Сканируем папку ~mods
           final modsDir = Directory(modsPath!);
           if (await modsDir.exists()) {
             final enabledFiles = await modsDir.list().where((entity) => 
@@ -66,11 +118,9 @@ class ModManager {
               final existingModIndex = mods.indexWhere((mod) => mod.name == fileName);
               
               if (existingModIndex != -1) {
-                // Обновляем существующий мод
                 mods[existingModIndex].path = file.path;
                 mods[existingModIndex].isEnabled = true;
               } else {
-                // Добавляем новый мод
                 final stat = await (file as File).stat();
                 mods.add(Mod(
                   name: fileName,
@@ -108,7 +158,29 @@ class ModManager {
   }
 
   Future<void> updateSettings(AppSettings newSettings) async {
+    final oldTempPath = tempModsPath;
     settings = newSettings;
+
+    if (settings.disabledModsPath != null && settings.disabledModsPath != oldTempPath) {
+      final newTempDir = Directory(settings.disabledModsPath!);
+      if (!await newTempDir.exists()) {
+        await newTempDir.create(recursive: true);
+      }
+
+      final disabledMods = mods.where((mod) => !mod.isEnabled).toList();
+      for (final mod in disabledMods) {
+        final oldFile = File(mod.path);
+        if (await oldFile.exists()) {
+          final newPath = path.join(settings.disabledModsPath!, path.basename(mod.path));
+          await oldFile.copy(newPath);
+          await oldFile.delete();
+          mod.path = newPath;
+        }
+      }
+
+      tempModsPath = settings.disabledModsPath;
+    }
+
     await saveSettings();
   }
 
@@ -121,53 +193,86 @@ class ModManager {
       await modsDir.create(recursive: true);
     }
 
-    final tempDir = await Directory.systemTemp.createTemp('MR-Mods');
-    tempModsPath = tempDir.path;
+    if (settings.disabledModsPath != null) {
+      tempModsPath = settings.disabledModsPath;
+      final tempDir = Directory(tempModsPath!);
+      if (!await tempDir.exists()) {
+        await tempDir.create(recursive: true);
+      }
+    } else {
+      final tempDir = await Directory.systemTemp.createTemp('MR-Mods');
+      tempModsPath = tempDir.path;
+    }
 
-    await saveSettings(); // Сохраняем настройки после установки пути
+    await saveSettings();
   }
 
   bool isValidGamePath(String gamePath) {
-    // Проверяем наличие лаунчера
     final launcherPath = path.join(gamePath, 'MarvelRivals_Launcher.exe');
     final hasLauncher = File(launcherPath).existsSync();
 
-    // Проверяем наличие папки игры
     final gameFolder = path.join(gamePath, 'MarvelGame');
     final hasGameFolder = Directory(gameFolder).existsSync();
 
-    // Путь валиден, если есть и лаунчер, и папка игры
     return hasLauncher && hasGameFolder;
   }
 
-  Future<void> addMod(String modPath, {Function(double)? onProgress}) async {
-    if (!modPath.toLowerCase().endsWith('.pak')) {
-      throw 'Неверный формат файла. Поддерживаются только .pak файлы';
+  Future<void> addMod(String filePath, {void Function(double)? onProgress, bool replace = false}) async {
+    if (!filePath.toLowerCase().endsWith('.pak')) {
+      throw ModManagerException('invalid_file_format');
     }
 
-    final modFile = File(modPath);
-    final modName = path.basename(modPath);
-    final fileSize = await modFile.length();
-    
+    final file = File(filePath);
+    if (!await file.exists()) {
+      throw ModManagerException('file_not_found');
+    }
+
+    final fileName = path.basename(filePath);
     final targetPath = settings.autoEnableMods
-        ? path.join(modsPath!, modName)
-        : path.join(tempModsPath!, modName);
+        ? path.join(modsPath!, fileName)
+        : path.join(tempModsPath!, fileName);
 
-    try {
-      await modFile.copy(targetPath);
-      onProgress?.call(1.0);
+    if (!replace && await File(targetPath).exists()) {
+      throw ModManagerException('mod_exists');
+    }
 
-      final mod = Mod(
-        name: modName,
-        path: targetPath,
-        fileSize: fileSize,
-        isEnabled: settings.autoEnableMods,
-      );
+    await _copyFileWithProgress(file, File(targetPath), onProgress);
+    
+    final mod = Mod(
+      name: fileName,
+      path: targetPath,
+      fileSize: await file.length(),
+      isEnabled: settings.autoEnableMods,
+    );
 
+    final existingIndex = mods.indexWhere((m) => m.name == fileName);
+    if (existingIndex != -1) {
+      mods[existingIndex] = mod;
+    } else {
       mods.add(mod);
-      await saveSettings();
+    }
+    await saveSettings();
+  }
+
+  Future<void> _copyFileWithProgress(File source, File target, void Function(double)? onProgress) async {
+    try {
+      final sourceStream = source.openRead();
+      final sinkStream = target.openWrite();
+      final sourceSize = await source.length();
+      var copiedBytes = 0;
+
+      await for (final chunk in sourceStream) {
+        sinkStream.add(chunk);
+        copiedBytes += chunk.length;
+        onProgress?.call(copiedBytes / sourceSize);
+      }
+
+      await sinkStream.close();
     } catch (e) {
-      throw 'Ошибка копирования файла: ${e.toString()}';
+      if (await target.exists()) {
+        await target.delete();
+      }
+      throw ModManagerException('error_copying_file');
     }
   }
 
@@ -185,7 +290,6 @@ class ModManager {
       try {
         await modFile.rename(newPath);
       } catch (e) {
-        // Если переименование не удалось, пробуем копировать и удалить
         await modFile.copy(newPath);
         await modFile.delete();
       }
@@ -251,51 +355,23 @@ class ModManager {
       final List<dynamic> modsMetadata = json.decode(metadataJson);
 
       for (final modData in modsMetadata) {
-        final modName = path.basename(modData['path']);
-        final modFile = archive.findFile(modName);
+        final mod = Mod.fromJson(modData);
+        final modFile = archive.findFile(mod.name);
         
         if (modFile != null) {
-          final targetPath = path.join(modsPath!, modName);
+          final targetPath = path.join(tempModsPath!, mod.name);
           await File(targetPath).writeAsBytes(modFile.content);
           
-          final mod = Mod(
-            name: modName,
-            path: targetPath,
-            fileSize: modFile.size,
-            isEnabled: true,
-            tags: (modData['tags'] as List<dynamic>?)
-                ?.map((tag) => ModTag.values.firstWhere((e) => e.name == tag))
-                .toSet(),
-          );
+          mod.path = targetPath;
+          mod.isEnabled = false;
           importedMods.add(mod);
           mods.add(mod);
         }
       }
+
+      await saveSettings();
     }
 
-    await saveSettings();
     return importedMods;
-  }
-
-  Future<void> launchGame() async {
-    if (gamePath == null) return;
-    
-    final launcherPath = path.join(gamePath!, 'MarvelRivals_Launcher.exe');
-    if (await File(launcherPath).exists()) {
-      final result = ShellExecute(
-        0, // hwnd
-        TEXT('runas'),  // operation
-        TEXT(launcherPath), // file
-        TEXT(''), // parameters
-        TEXT(gamePath!), // directory
-        SW_SHOW,
-      );
-
-      if (result <= 32) {
-        throw ModManagerException('Ошибка запуска игры: $result');
-      }
-    } else {
-      throw ModManagerException('Лаунчер игры не найден');
-    }
   }
 } 
