@@ -5,6 +5,9 @@
 MORE INFO AND SUPPORT - [https://www.nexusmods.com/marvelrivals/mods/208](https://www.nexusmods.com/marvelrivals/mods/208?tab=posts)  
 COMMENTS - [https://www.nexusmods.com/marvelrivals/mods/208?tab=posts](https://www.nexusmods.com/marvelrivals/mods/208?tab=posts)
 
+VT MOD MANAGER - [https://www.virustotal.com/gui/file/009e7568356f4c17a28c7710a398ce147af9edbd4b3215a7e15d838a873f3986/](https://www.virustotal.com/gui/file/009e7568356f4c17a28c7710a398ce147af9edbd4b3215a7e15d838a873f3986/)  
+VT ASSETS - [https://www.virustotal.com/gui/file/e09d1ba1c53781faba3b75f76b25fd3415d39168bdbfe4f253b47acfe8b61b2b](https://www.virustotal.com/gui/file/e09d1ba1c53781faba3b75f76b25fd3415d39168bdbfe4f253b47acfe8b61b2b)
+
 ## English
 
 ### Overview
