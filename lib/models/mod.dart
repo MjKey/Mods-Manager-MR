@@ -1,81 +1,59 @@
-import 'dart:io';
-
-enum ModTag {
-  color,
-  model,
-  sound,
-  music,
-  other;
-
-  String getLocalizedLabel(String Function(String) getLocalized) {
-    return getLocalized('tag_${name}');
-  }
-}
-
 class Mod {
   final String name;
-  String displayName;
-  String path;
-  final int fileSize;
-  bool isEnabled;
-  final Set<ModTag> tags;
-  final DateTime addedDate;
+  final String? description;
+  final String pakPath;
+  final String unpackedPath;
+  final DateTime installDate;
+  final String version;
+  final String? character;
+  final bool isEnabled;
+  final String? nexusUrl;
+  final String? nexusImageUrl;
+  final DateTime? lastUpdateCheck;
+  final List<String> tags;
 
   Mod({
     required this.name,
-    String? displayName,
-    required this.path,
-    this.fileSize = 0,
-    this.isEnabled = false,
-    Set<ModTag>? tags,
-    DateTime? addedDate,
-  }) : 
-    displayName = displayName ?? name,
-    addedDate = addedDate ?? DateTime.now(),
-    tags = tags ?? {};
+    this.description,
+    required this.pakPath,
+    required this.unpackedPath,
+    required this.installDate,
+    required this.version,
+    this.character,
+    required this.isEnabled,
+    this.nexusUrl,
+    this.nexusImageUrl,
+    this.lastUpdateCheck,
+    this.tags = const [],
+  });
 
-  String get formattedSize {
-    if (fileSize < 1024) return '$fileSize B';
-    if (fileSize < 1024 * 1024) return '${(fileSize / 1024).toStringAsFixed(1)} KB';
-    return '${(fileSize / (1024 * 1024)).toStringAsFixed(1)} MB';
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-      'displayName': displayName,
-      'path': path,
-      'fileSize': fileSize,
-      'isEnabled': isEnabled,
-      'tags': tags.map((tag) => tag.name).toList(),
-      'addedDate': addedDate.toIso8601String(),
-    };
-  }
-
-  factory Mod.fromJson(Map<String, dynamic> json) {
+  Mod copyWith({
+    String? name,
+    String? description,
+    String? pakPath,
+    String? unpackedPath,
+    DateTime? installDate,
+    String? version,
+    String? character,
+    bool? isEnabled,
+    String? nexusUrl,
+    String? nexusImageUrl,
+    DateTime? lastUpdateCheck,
+    List<String>? tags,
+  }) {
     return Mod(
-      name: json['name'],
-      displayName: json['displayName'],
-      path: json['path'],
-      fileSize: json['fileSize'] ?? 0,
-      isEnabled: json['isEnabled'] ?? false,
-      tags: (json['tags'] as List<dynamic>?)
-          ?.map((tag) => ModTag.values.firstWhere((e) => e.name == tag))
-          .toSet() ?? {},
-      addedDate: json['addedDate'] != null 
-          ? DateTime.parse(json['addedDate'])
-          : null,
-    );
-  }
-
-  static Future<Mod> fromFile(File file) async {
-    final stat = await file.stat();
-    final fileName = file.path.split(Platform.pathSeparator).last;
-    return Mod(
-      name: fileName,
-      displayName: fileName,
-      path: file.path,
-      fileSize: stat.size,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      pakPath: pakPath ?? this.pakPath,
+      unpackedPath: unpackedPath ?? this.unpackedPath,
+      installDate: installDate ?? this.installDate,
+      version: version ?? this.version,
+      character: character ?? this.character,
+      isEnabled: isEnabled ?? this.isEnabled,
+      nexusUrl: nexusUrl ?? this.nexusUrl,
+      nexusImageUrl: nexusImageUrl ?? this.nexusImageUrl,
+      lastUpdateCheck: lastUpdateCheck ?? this.lastUpdateCheck,
+      tags: tags ?? this.tags,
     );
   }
 } 

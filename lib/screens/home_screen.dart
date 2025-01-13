@@ -1,224 +1,143 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:desktop_drop/desktop_drop.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../models/mod.dart';
-import '../services/mod_service.dart';
-import '../l10n/app_localizations.dart';
+import 'package:provider/provider.dart';
+import '../providers/mods_provider.dart';
+import '../widgets/mod_list_panel.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../screens/settings_screen.dart';
+import '../services/localization_service.dart';
 
 class HomeScreen extends StatefulWidget {
-  final String gamePath;
-
-  const HomeScreen({
-    super.key,
-    required this.gamePath,
-  });
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<Mod> mods = [];
-  bool _isDragging = false;
-  late ModService _modService;
+  String? _enabledSearchQuery;
+  String? _disabledSearchQuery;
 
-  @override
-  void initState() {
-    super.initState();
-    _initModService();
-  }
-
-  Future<void> _initModService() async {
-    final prefs = await SharedPreferences.getInstance();
-    _modService = ModService(prefs, widget.gamePath);
-    _loadMods();
-  }
-
-  Future<void> _loadMods() async {
-    final loadedMods = await _modService.loadMods();
-    setState(() {
-      mods = loadedMods;
-    });
-  }
-
-  Future<void> _saveMods() async {
-    await _modService.saveMods(mods);
-  }
-
-  Widget _buildModTags(Mod mod) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Теги:',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 12,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Wrap(
-          spacing: 4,
-          children: ModTag.values.map((tag) {
-            final isSelected = mod.tags.contains(tag);
-            return FilterChip(
-              label: Text(tag.getLocalizedLabel(AppLocalizations.of(context).get)),
-              selected: isSelected,
-              selectedColor: Colors.blue.withOpacity(0.2),
-              checkmarkColor: Colors.blue,
-              onSelected: (selected) {
-                setState(() {
-                  if (selected) {
-                    mod.tags.add(tag);
-                  } else {
-                    mod.tags.remove(tag);
-                  }
-                  _saveMods();
-                });
-              },
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-
-  Future<void> _exportMods() async {
-    final result = await FilePicker.platform.getDirectoryPath();
-    if (result != null) {
-      try {
-        final exportPath = await _modService.exportMods(mods, result);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Моды экспортированы в: $exportPath')),
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ошибка при экспорте: $e')),
-        );
-      }
-    }
-  }
-
-  Future<void> _importMods() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['mrmm'],
-    );
-
-    if (result != null) {
-      try {
-        final importedMods = await _modService.importMods(
-          result.files.single.path!,
-          // Здесь нужно указать директорию для модов
-          Directory.current.path,
-        );
-        setState(() {
-          mods.addAll(importedMods);
-          _saveMods();
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Импортировано ${importedMods.length} модов')),
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ошибка при импорте: $e')),
-        );
-      }
+  Future<void> _launchGame(String url) async {
+    final localization = context.read<LocalizationService>();
+    if (!await launchUrl(Uri.parse(url))) {
+      throw Exception(localization.translate('home.errors.game_launch'));
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final localization = context.read<LocalizationService>();
     return Scaffold(
       appBar: AppBar(
-        title: Text('Marvel Rivals Mod Manager'),
+        title: Text(localization.translate('app.title')),
         actions: [
-          Tooltip(
-            message: 'Экспорт модов',
-            child: TextButton.icon(
-              icon: Icon(Icons.file_upload, color: Colors.white),
-              label: Text('Экспорт', style: TextStyle(color: Colors.white)),
-              onPressed: _exportMods,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Tooltip(
-            message: 'Импорт модов',
-            child: TextButton.icon(
-              icon: Icon(Icons.file_download, color: Colors.white),
-              label: Text('Импорт', style: TextStyle(color: Colors.white)),
-              onPressed: _importMods,
-            ),
-          ),
-          const SizedBox(width: 8),
           IconButton(
-            icon: Icon(Icons.settings),
-            onPressed: () {
-              // Открытие настроек
-            },
+            icon: const Icon(Icons.sports_esports),
+            onPressed: () => _launchGame('steam://rungameid/2767030'),
+            tooltip: localization.translate('home.tooltips.launch_steam'),
+          ),
+          IconButton(
+            icon: const Icon(Icons.gamepad),
+            onPressed: () => _launchGame('com.epicgames.launcher://apps/38e211ced4e448a5a653a8d1e13fef18%3A27556e7cd968479daee8cc7bd77aebdd%3A575efd0b5dd54429b035ffc8fe2d36d0?action=launch&silent=true'),
+            tooltip: localization.translate('home.tooltips.launch_epic'),
+          ),
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () => _addMod(context),
+            tooltip: localization.translate('home.tooltips.add_mod'),
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const SettingsScreen()),
+            ),
+            tooltip: localization.translate('home.tooltips.settings'),
           ),
         ],
       ),
-      body: DropTarget(
-        onDragDone: (details) async {
-          // Обработка перетаскивания файл��в
-        },
-        onDragEntered: (details) {
-          setState(() => _isDragging = true);
-        },
-        onDragExited: (details) {
-          setState(() => _isDragging = false);
-        },
-        child: Stack(
-          children: [
-            ListView.builder(
-              itemCount: mods.length,
-              itemBuilder: (context, index) {
-                final mod = mods[index];
-                return Card(
-                  child: ListTile(
-                    title: Text(mod.name),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Размер: ${mod.formattedSize}'),
-                        _buildModTags(mod),
-                      ],
-                    ),
-                    trailing: Switch(
-                      value: mod.isEnabled,
-                      onChanged: (value) {
-                        setState(() {
-                          mod.isEnabled = value;
-                          _saveMods();
-                        });
-                      },
-                    ),
-                  ),
-                );
-              },
-            ),
-            if (_isDragging)
-              Container(
-                color: Colors.blue.withOpacity(0.2),
-                child: Center(
-                  child: Text(
-                    'Перетащите файлы модов сюда',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
+      body: Consumer<ModsProvider>(
+        builder: (context, modsProvider, child) {
+          if (modsProvider.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          
+          final enabledMods = modsProvider.getEnabledMods(
+            searchQuery: _enabledSearchQuery,
+          );
+          final disabledMods = modsProvider.getDisabledMods(
+            searchQuery: _disabledSearchQuery,
+          );
+
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: ModListPanel(
+                  title: localization.translate('home.mod_lists.disabled'),
+                  mods: disabledMods,
+                  onSearch: (query) => setState(() => _disabledSearchQuery = query),
+                  onToggle: (mod) => modsProvider.toggleMod(mod),
+                  onRename: (mod, newName) => modsProvider.renameMod(mod, newName),
+                  isEnabledList: false,
                 ),
               ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          // Добавление новых модов
+              Expanded(
+                child: ModListPanel(
+                  title: localization.translate('home.mod_lists.enabled'),
+                  mods: enabledMods,
+                  onSearch: (query) => setState(() => _enabledSearchQuery = query),
+                  onToggle: (mod) => modsProvider.toggleMod(mod),
+                  onRename: (mod, newName) => modsProvider.renameMod(mod, newName),
+                  isEnabledList: true,
+                ),
+              ),
+            ],
+          );
         },
-        child: Icon(Icons.add),
       ),
     );
+  }
+
+  Future<void> _addMod(BuildContext context) async {
+    final localization = context.read<LocalizationService>();
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowMultiple: true,
+        allowedExtensions: ['pak', 'zip'],
+      );
+      
+      if (result != null && result.files.isNotEmpty) {
+        if (!mounted) return;
+        
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+        
+        try {
+          for (final file in result.files) {
+            if (file.path != null) {
+              await Provider.of<ModsProvider>(context, listen: false)
+                  .addMod(file.path!);
+            }
+          }
+        } finally {
+          if (mounted) {
+            Navigator.pop(context);
+          }
+        }
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(localization.translate('home.errors.add_mod', {'error': e.toString()}))),
+      );
+    }
   }
 } 

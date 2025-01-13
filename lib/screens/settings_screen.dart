@@ -1,236 +1,405 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import '../models/app_settings.dart';
-import '../models/mod_manager.dart';
-import '../l10n/app_localizations.dart';
+import '../services/game_paths_service.dart';
+import '../services/game_finder_service.dart';
+import '../services/mod_manager_service.dart';
+import '../providers/mods_provider.dart';
+import 'package:provider/provider.dart';
+import '../services/settings_service.dart';
+import '../services/localization_service.dart';
+import 'dart:convert';
+import 'dart:math' as math;
+import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends StatefulWidget {
-  final ModManager modManager;
-
-  const SettingsScreen({
-    super.key,
-    required this.modManager,
-  });
+  const SettingsScreen({super.key});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  late bool _autoEnableMods;
-  late bool _showFileSize;
-  late String _language;
-  String? _disabledModsPath;
-  bool _hasChanges = false;
+  String? _gamePath;
+  String? _backupPath;
+  String? _modsPath;
+  bool _isLoading = true;
+  late LocalizationService _localizationService;
+  bool _isCheckingUpdate = false;
 
   @override
   void initState() {
     super.initState();
-    _autoEnableMods = widget.modManager.settings.autoEnableMods;
-    _showFileSize = widget.modManager.settings.showFileSize;
-    _language = widget.modManager.settings.language;
-    _disabledModsPath = widget.modManager.settings.disabledModsPath;
+    _localizationService = LocalizationService();
+    _loadPaths();
   }
 
-  Future<void> _selectDisabledModsFolder() async {
-    final l10n = AppLocalizations.of(context);
-    final result = await FilePicker.platform.getDirectoryPath(
-      dialogTitle: l10n.get('select_disabled_mods_folder'),
-    );
-
-    if (result != null) {
-      setState(() {
-        _disabledModsPath = result;
-        _hasChanges = true;
-      });
-    }
-  }
-
-  Future<void> _selectGameFolder() async {
-    final l10n = AppLocalizations.of(context);
-    final result = await FilePicker.platform.getDirectoryPath(
-      dialogTitle: l10n.get('select_game_folder'),
-    );
-
-    if (result != null) {
-      if (widget.modManager.isValidGamePath(result)) {
-        await widget.modManager.setGamePath(result);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l10n.get('game_folder_changed'))),
-          );
-        }
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(l10n.get('invalid_folder')),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    }
-  }
-
-  Future<void> _saveSettings() async {
-    final newSettings = AppSettings(
-      language: _language,
-      autoEnableMods: _autoEnableMods,
-      showFileSize: _showFileSize,
-      disabledModsPath: _disabledModsPath,
-    );
-
-    await widget.modManager.updateSettings(newSettings);
+  Future<void> _loadPaths() async {
+    final gamePath = await GamePathsService.getGamePath();
+    final backupPath = await SettingsService.getBackupPath();
+    final modsPath = await SettingsService.getModsPath();
     
-    if (mounted) {
-      Navigator.of(context).pop(true);
+    setState(() {
+      _gamePath = gamePath;
+      _backupPath = backupPath;
+      _modsPath = modsPath;
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _selectDirectory(String title, Function(String) onSelected) async {
+    final result = await FilePicker.platform.getDirectoryPath(
+      dialogTitle: title,
+    );
+    if (result != null) {
+      await onSelected(result);
+      await _loadPaths();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.get('settings')),
-        actions: [
-          TextButton(
-            onPressed: _hasChanges
-                ? () async {
-                    await _saveSettings();
-                  }
-                : null,
-            child: Text(l10n.get('save')),
-          ),
-        ],
+        title: Text(_localizationService.translate('settings.title')),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          SwitchListTile(
-            title: Text(l10n.get('auto_enable_mods')),
-            subtitle: Text(l10n.get('auto_enable_mods_desc')),
-            value: _autoEnableMods,
-            onChanged: (value) {
-              setState(() {
-                _autoEnableMods = value;
-                _hasChanges = true;
-              });
-            },
-          ),
-          SwitchListTile(
-            title: Text(l10n.get('show_file_size')),
-            subtitle: Text(l10n.get('show_file_size_desc')),
-            value: _showFileSize,
-            onChanged: (value) {
-              setState(() {
-                _showFileSize = value;
-                _hasChanges = true;
-              });
-            },
-          ),
-          const Divider(),
-          ListTile(
-            title: Text(l10n.get('game_folder')),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView(
               children: [
-                Text(l10n.get('game_folder_desc')),
-                if (widget.modManager.gamePath != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Text(
-                      widget.modManager.gamePath!,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ),
-              ],
-            ),
-            trailing: TextButton.icon(
-              icon: const Icon(Icons.folder_open),
-              label: Text(l10n.get('change_game_folder')),
-              onPressed: _selectGameFolder,
-            ),
-          ),
-          const Divider(),
-          ListTile(
-            title: Text(l10n.get('disabled_mods_folder')),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(l10n.get('disabled_mods_folder_desc')),
-                if (_disabledModsPath != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Text(
-                      _disabledModsPath!,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ),
-              ],
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (_disabledModsPath != null)
-                  IconButton(
-                    icon: const Icon(Icons.clear),
-                    onPressed: () {
-                      setState(() {
-                        _disabledModsPath = null;
-                        _hasChanges = true;
-                      });
+                ListTile(
+                  title: Text(_localizationService.translate('settings.language')),
+                  trailing: DropdownButton<String>(
+                    value: _localizationService.currentLanguage,
+                    items: LocalizationService.supportedLanguages
+                        .map((lang) => DropdownMenuItem(
+                              value: lang['code'],
+                              child: Text(lang['name']!),
+                            ))
+                        .toList(),
+                    onChanged: (String? langCode) {
+                      if (langCode != null) {
+                        _localizationService.setLanguage(langCode);
+                      }
                     },
                   ),
-                TextButton.icon(
-                  icon: const Icon(Icons.folder_open),
-                  label: Text(_disabledModsPath == null
-                      ? l10n.get('select_folder')
-                      : l10n.get('change_folder')),
-                  onPressed: _selectDisabledModsFolder,
+                ),
+                const Divider(),
+                ListTile(
+                  title: Text(_localizationService.translate('settings.paths.game.title')),
+                  subtitle: Text(_gamePath ?? _localizationService.translate('settings.paths.game.not_found')),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.refresh),
+                        onPressed: () async {
+                          setState(() => _isLoading = true);
+                          final path = await GameFinderService.findGameFolderForced();
+                          setState(() {
+                            _gamePath = path;
+                            _isLoading = false;
+                          });
+                        },
+                        tooltip: _localizationService.translate('settings.paths.game.tooltips.auto_find'),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.folder_open),
+                        onPressed: () async {
+                          final result = await FilePicker.platform.getDirectoryPath();
+                          if (result != null) {
+                            try {
+                              await GamePathsService.setGamePath(result);
+                              setState(() => _gamePath = result);
+                            } catch (e) {
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(_localizationService.translate('settings.paths.game.error', {'error': e.toString()}))),
+                                );
+                              }
+                            }
+                          }
+                        },
+                        tooltip: _localizationService.translate('settings.paths.game.tooltips.manual_select'),
+                      ),
+                    ],
+                  ),
+                ),
+                if (_gamePath == null)
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(
+                      _localizationService.translate('settings.paths.game.warning'),
+                      style: const TextStyle(color: Colors.orange),
+                    ),
+                  ),
+                const Divider(),
+                ListTile(
+                  title: Text(_localizationService.translate('settings.paths.backup.title')),
+                  subtitle: Text(_backupPath ?? _localizationService.translate('settings.paths.backup.not_set')),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextButton(
+                        onPressed: () async {
+                          await SettingsService.setBackupPath(
+                            SettingsService.defaultAppDataPath + '\\Backups'
+                          );
+                          await _loadPaths();
+                        },
+                        child: Text(_localizationService.translate('settings.paths.backup.default')),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.folder_open),
+                        onPressed: () => _selectDirectory(
+                          _localizationService.translate('settings.paths.backup.dialog_title'),
+                          SettingsService.setBackupPath,
+                        ),
+                        tooltip: _localizationService.translate('settings.paths.backup.tooltip'),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                ListTile(
+                  title: Text(_localizationService.translate('settings.paths.mods.title')),
+                  subtitle: Text(_modsPath ?? _localizationService.translate('settings.paths.mods.not_set')),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextButton(
+                        onPressed: () async {
+                          await SettingsService.setModsPath(
+                            SettingsService.defaultAppDataPath + '\\Unpacked Mods'
+                          );
+                          await _loadPaths();
+                        },
+                        child: Text(_localizationService.translate('settings.paths.mods.default')),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.folder_open),
+                        onPressed: () => _selectDirectory(
+                          _localizationService.translate('settings.paths.mods.dialog_title'),
+                          SettingsService.setModsPath,
+                        ),
+                        tooltip: _localizationService.translate('settings.paths.mods.tooltip'),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(),
+                ListTile(
+                  title: Text(
+                    _localizationService.translate('settings.reset.title'),
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                  subtitle: Text(
+                    _localizationService.translate('settings.reset.subtitle'),
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                  trailing: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: () => _showResetConfirmation(context),
+                    child: Text(_localizationService.translate('settings.reset.button')),
+                  ),
+                ),
+                const Divider(),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text('Made with '),
+                          const Icon(Icons.favorite, color: Colors.red, size: 16),
+                          const Text(' | v2.0 | '),
+                          InkWell(
+                            onTap: () async {
+                              final url = Uri.parse('https://mjkey.ru');
+                              if (await canLaunchUrl(url)) {
+                                await launchUrl(url);
+                              }
+                            },
+                            child: const Text(
+                              'MjKey',
+                              style: TextStyle(
+                                color: Color.fromARGB(255, 33, 194, 243),
+                              ),
+                            ),
+                          ),
+                          const Text(' | '),
+                          InkWell(
+                            onTap: () async {
+                              final url = Uri.parse('https://www.donationalerts.com/c/mjk3y');
+                              if (await canLaunchUrl(url)) {
+                                await launchUrl(url);
+                              }
+                            },
+                            child: const Text(
+                              'Donate',
+                              style: TextStyle(
+                                color: Color.fromARGB(255, 243, 135, 33),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      ElevatedButton.icon(
+                        onPressed: () async {
+                          setState(() => _isCheckingUpdate = true);
+                          try {
+                            final hasUpdate = await _checkForUpdates();
+                            if (!mounted) return;
+                            
+                            if (hasUpdate) {
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: Text(_localizationService.translate('settings.update.available.title')),
+                                  content: Text(_localizationService.translate('settings.update.available.message')),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: Text(_localizationService.translate('settings.update.available.later')),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () async {
+                                        final url = Uri.parse('https://github.com/MjKey/Mods-Manager-MR/releases/latest');
+                                        if (await canLaunchUrl(url)) {
+                                          await launchUrl(url);
+                                        }
+                                        if (mounted) Navigator.pop(context);
+                                      },
+                                      child: Text(_localizationService.translate('settings.update.available.download')),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(_localizationService.translate('settings.update.no_updates')),
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(_localizationService.translate(
+                                    'settings.update.error',
+                                    {'error': e.toString()},
+                                  )),
+                                ),
+                              );
+                            }
+                          } finally {
+                            if (mounted) {
+                              setState(() => _isCheckingUpdate = false);
+                            }
+                          }
+                        },
+                        icon: _isCheckingUpdate
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.update),
+                        label: Text(_localizationService.translate('settings.update.check')),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
+    );
+  }
+
+  Future<void> _showResetConfirmation(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(_localizationService.translate('settings.reset.confirmation.title')),
+        content: Text(_localizationService.translate('settings.reset.confirmation.message')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(_localizationService.translate('settings.reset.confirmation.cancel')),
           ),
-          const Divider(),
-          ListTile(
-            title: Text(l10n.get('language')),
-            trailing: DropdownButton<String>(
-              value: _language,
-              items: const [
-                DropdownMenuItem(
-                  value: 'en',
-                  child: Text('English'),
-                ),
-                DropdownMenuItem(
-                  value: 'ru',
-                  child: Text('Русский'),
-                ),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    _language = value;
-                    _hasChanges = true;
-                  });
-                }
-              },
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
             ),
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(_localizationService.translate('settings.reset.confirmation.confirm')),
           ),
-          const SizedBox(height: 32),
-          Center(
-            child: Text(
-              l10n.get('made_with_love'),
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey,
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
         ],
       ),
     );
+
+    if (confirmed == true && mounted) {
+      try {
+        setState(() => _isLoading = true);
+        
+        final gamePath = await GamePathsService.getGamePath();
+        if (gamePath == null) {
+          throw Exception(_localizationService.translate('mods.errors.game_path_not_found'));
+        }
+
+        await ModManagerService.resetAllMods(gamePath);
+        
+        // Обновляем ModsProvider
+        await Provider.of<ModsProvider>(context, listen: false).loadMods();
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(_localizationService.translate('settings.reset.success'))),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(_localizationService.translate('settings.reset.error', {'error': e.toString()}))),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      }
+    }
+  }
+
+  Future<bool> _checkForUpdates() async {
+    final response = await http.get(Uri.parse(
+      'https://api.github.com/repos/MjKey/Mods-Manager-MR/releases/latest'
+    ));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final latestVersion = data['tag_name'].toString().replaceAll('v', '');
+      final currentVersion = '2.0';
+
+      final List<String> latestParts = latestVersion.split('.');
+      final List<String> currentParts = currentVersion.split('.');
+
+      for (var i = 0; i < math.min(latestParts.length, currentParts.length); i++) {
+        final latest = int.parse(latestParts[i]);
+        final current = int.parse(currentParts[i]);
+        if (latest > current) return true;
+        if (latest < current) return false;
+      }
+
+      return latestParts.length > currentParts.length;
+    }
+
+    throw Exception('Failed to check for updates');
   }
 } 
