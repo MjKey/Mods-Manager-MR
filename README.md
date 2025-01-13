@@ -1,4 +1,4 @@
-# Marvel Rivals Mod Manager
+![image](https://github.com/user-attachments/assets/5c145208-6be7-4055-82f2-1210be93034f)# Marvel Rivals Mod Manager
 
 [English](#english) | [Русский](#русский)
 
@@ -6,7 +6,7 @@ MORE INFO AND SUPPORT - [https://www.nexusmods.com/marvelrivals/mods/208](https:
 COMMENTS - [https://www.nexusmods.com/marvelrivals/mods/208?tab=posts](https://www.nexusmods.com/marvelrivals/mods/208?tab=posts)
 
 VT MOD MANAGER - [https://www.virustotal.com/gui/file/009e7568356f4c17a28c7710a398ce147af9edbd4b3215a7e15d838a873f3986/](https://www.virustotal.com/gui/file/009e7568356f4c17a28c7710a398ce147af9edbd4b3215a7e15d838a873f3986/)  
-VT ASSETS quickbms - [https://www.virustotal.com/gui/file/e09d1ba1c53781faba3b75f76b25fd3415d39168bdbfe4f253b47acfe8b61b2b](https://www.virustotal.com/gui/file/e09d1ba1c53781faba3b75f76b25fd3415d39168bdbfe4f253b47acfe8b61b2b)
+VT ASSETS quickbms - [https://www.virustotal.com/gui/file/3eda0e7f74d14cbdace0ba6aa3cf21408aaa63e586f8b98b395441fda8458e9b](https://www.virustotal.com/gui/file/3eda0e7f74d14cbdace0ba6aa3cf21408aaa63e586f8b98b395441fda8458e9b)
 
 ASSETS quickbms - [https://mjkey.ru/MarvelRivalsModManager/assets.zip](https://mjkey.ru/MarvelRivalsModManager/assets.zip)
 
