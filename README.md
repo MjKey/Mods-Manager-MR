@@ -2,8 +2,8 @@
 
 [English](#english) | [Русский](#русский)
 
-MORE INFO AND SUPPORT - [https://www.nexusmods.com/marvelrivals/mods/208](https://www.nexusmods.com/marvelrivals/mods/208?tab=posts)
-COMMENT - [https://www.nexusmods.com/marvelrivals/mods/208?tab=posts](https://www.nexusmods.com/marvelrivals/mods/208?tab=posts)
+MORE INFO AND SUPPORT - [https://www.nexusmods.com/marvelrivals/mods/208](https://www.nexusmods.com/marvelrivals/mods/208?tab=posts)  
+COMMENTS - [https://www.nexusmods.com/marvelrivals/mods/208?tab=posts](https://www.nexusmods.com/marvelrivals/mods/208?tab=posts)
 
 ## English
 
