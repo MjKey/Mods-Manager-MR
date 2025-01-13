@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/5c145208-6be7-4055-82f2-1210be93034f)# Marvel Rivals Mod Manager
+# Marvel Rivals Mod Manager
 
 [English](#english) | [Русский](#русский)
 
