@@ -1,0 +1,322 @@
+{
+  "app": {
+    "title": "Marvel Rivals Mod Manager",
+    "initialization": "Initialization..."
+  },
+  "game_paths": {
+    "errors": {
+      "get_path": "Error getting game path: {error}",
+      "invalid_path": "Invalid game path: Paks folder not found",
+      "quickbms_check": "Error checking QuickBMS: {error}",
+      "ok": "OK"
+    },
+    "logs": {
+      "checking_quickbms": "Checking QuickBMS..."
+    }
+  },
+  "downloader": {
+    "errors": {
+      "web_unsupported": "QuickBMS download is not supported in the web version of the application",
+      "download_failed": "Error downloading file: server returned code {code}. The file may be unavailable or the server requires authorization.",
+      "not_zip": "Downloaded file is not a ZIP archive",
+      "unpack_failed": "Failed to unpack archive: {error}"
+    },
+    "logs": {
+      "download_url": "Download URL: {url}",
+      "save_path": "Save path: {path}",
+      "request_headers": "Sending request with headers: {headers}",
+      "response_code": "Response code: {code}",
+      "file_size": "File size: {size} bytes",
+      "download_start": "Starting file download...",
+      "received": "Received: {received} bytes of {total}",
+      "download_complete": "Download complete",
+      "file_length": "Downloaded file size: {size} bytes",
+      "first_bytes": "First 10 bytes of file: {bytes}"
+    },
+    "progress": {
+      "title": "Downloading Components",
+      "downloaded": "Downloaded: {downloaded} MB of {total} MB"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "update": {
+      "check": "Check for Updates",
+      "available": {
+        "title": "Update Available",
+        "message": "A new version is available. Would you like to download it?",
+        "later": "Later",
+        "download": "Download"
+      },
+      "no_updates": "You have the latest version",
+      "error": "Failed to check for updates: {error}"
+    },
+    "paths": {
+      "game": {
+        "title": "Game Path",
+        "not_found": "Not found",
+        "tooltips": {
+          "auto_find": "Find automatically",
+          "manual_select": "Select manually"
+        },
+        "warning": "Game not found. Try to find automatically or specify the path manually.",
+        "error": "Error: {error}"
+      },
+      "backup": {
+        "title": "Backup Folder",
+        "not_set": "Not set",
+        "default": "Default",
+        "tooltip": "Select folder",
+        "dialog_title": "Select backup folder"
+      },
+      "mods": {
+        "title": "Disabled Mods Folder",
+        "not_set": "Not set",
+        "default": "Default",
+        "tooltip": "Select folder",
+        "dialog_title": "Select disabled mods folder"
+      }
+    },
+    "reset": {
+      "title": "Full Reset",
+      "subtitle": "Will remove all mods and restore original game files",
+      "button": "Reset",
+      "confirmation": {
+        "title": "Reset Confirmation",
+        "message": "Are you sure you want to perform a full reset?\n\nThis will:\n• Remove all installed mods\n• Restore original game files\n• Delete all backups\n\nThis action cannot be undone!",
+        "cancel": "Cancel",
+        "confirm": "Yes, reset all"
+      },
+      "success": "Full reset completed successfully",
+      "error": "Error: {error}"
+    }
+  },
+  "home": {
+    "tooltips": {
+      "launch_steam": "Launch in Steam",
+      "launch_epic": "Launch in Epic Games",
+      "add_mod": "Add mod",
+      "settings": "Settings"
+    },
+    "mod_lists": {
+      "disabled": "Disabled mods",
+      "enabled": "Enabled mods"
+    },
+    "errors": {
+      "game_launch": "Failed to launch game",
+      "add_mod": "Error: {error}"
+    }
+  },
+  "mods": {
+    "default": {
+      "description": "Mod description"
+    },
+    "errors": {
+      "game_path_not_found": "Game path not found",
+      "mod_conflict": "Conflict with mod {modName}. The following files are already modified:\n{files}",
+      "rename": "Error renaming mod: {error}",
+      "toggle": "Error toggling mod: {error}",
+      "remove": "Error removing mod: {error}",
+      "tag_exists": "Tag already exists",
+      "add_tag": "Error adding tag: {error}",
+      "remove_tag": "Error removing tag: {error}",
+      "nexus_update": "Error updating mod information: {error}",
+      "load": "Error loading existing mods: {error}",
+      "name_exists": "A mod with this name already exists",
+      "file_not_found": "File not found",
+      "not_zip": "Selected file is not a ZIP archive",
+      "no_pak_or_marvel": "No .pak file or Marvel folder found in ZIP archive",
+      "unpack_failed": "Unpacking error: {error}"
+    },
+    "logs": {
+      "add": "Added mod: {name}, character: {character}, enabled: {enabled}",
+      "rename": "Mod renamed: {oldName} -> {newName}",
+      "toggle": "Mod {name} state changed to: {enabled}",
+      "tag_add": "Added tag \"{tag}\" to mod {name}",
+      "tag_remove": "Removed tag \"{tag}\" from mod {name}",
+      "nexus_update": {
+        "start": "Starting Nexus Mods information update",
+        "mod_info": "Mod: {name}",
+        "new_url": "New Nexus URL: {url}",
+        "mod_index": "Mod index in list: {index}",
+        "not_found": "Mod not found in list",
+        "getting_info": "Getting information from Nexus Mods...",
+        "received_info": "Received information: {info}",
+        "updated_info": "Updated information:",
+        "version": "- Version: {version}",
+        "picture_url": "- Picture URL: {url}",
+        "nexus_url": "- Nexus URL: {url}",
+        "success": "Information successfully updated and saved"
+      }
+    }
+  },
+  "dialogs": {
+    "components": {
+      "title": "Components Download Required",
+      "message": "Additional components need to be downloaded (~40 MB) for the application to work. Allow download?",
+      "cancel": "Cancel",
+      "download": "Download"
+    },
+    "error": {
+      "title": "Error",
+      "download_failed": "Failed to download components: {error}",
+      "close": "Close",
+      "components_not_found": "Could not find required components: {error}",
+      "unpacking_failed": "Failed to unpack files: {error}",
+      "general": "An error occurred: {error}"
+    },
+    "game_path": {
+      "title": "Game Path Not Found",
+      "message": "Please specify the game path in settings.",
+      "go_to_settings": "Go to Settings"
+    },
+    "unpacking": {
+      "title": "File Unpacking Required",
+      "message": "Game files need to be unpacked before starting. This will take about ~1h. Ready to continue?",
+      "cancel": "Cancel",
+      "continue": "Continue",
+      "warning": {
+        "title": "Warning",
+        "message": "The unpacking process will take a long time.\n\nPlease do not close the application or shut down your computer until the process is complete.\n\nContinue?",
+        "cancel": "Cancel",
+        "continue": "Continue"
+      }
+    }
+  },
+  "mod_manager": {
+    "errors": {
+      "invalid_mod_structure": "Invalid mod structure: Marvel folder not found",
+      "backup_failed": "Failed to backup file: {error}",
+      "restore_failed": "Failed to restore file: {error}",
+      "reset_failed": "Error during full reset: {error}"
+    },
+    "logs": {
+      "backup_create": "Creating backup for file: {path}",
+      "relative_path": "Relative path: {path}",
+      "backup_created": "Backup created: {path}",
+      "relative_path_saved": "Saved relative path: {path}",
+      "backup_search": "Looking for backup: {path}",
+      "mod_backup_dir": "Mod backup directory: {path}",
+      "file_relative_path": "File relative path: {path}",
+      "backup_not_found": "Backups not found for mod: {name}",
+      "removing_mod_file": "Removing mod file: {path}",
+      "comparing_paths": "Comparing paths:",
+      "saved_path": "- Saved:   {path}",
+      "target_path": "- Target:       {path}",
+      "backup_found": "Found matching backup: {path}",
+      "restoring_file": "Restoring file: {path}",
+      "file_restored": "File successfully restored from backup: {path}",
+      "paths_mismatch": "Paths don't match, continuing search...",
+      "no_backup_found": "No matching backup found for file: {path}",
+      "reset_start": "Starting full reset...",
+      "disable_mod": "Disabling mod: {name}",
+      "mod_removed": "Removed mod: {name}",
+      "backups_removed": "All backups removed",
+      "reset_complete": "Full reset completed successfully"
+    }
+  },
+  "nexus_mods": {
+    "errors": {
+      "invalid_url": "Invalid mod URL",
+      "get_info_failed": "Failed to get mod information: {code}"
+    }
+  },
+  "platform": {
+    "errors": {
+      "localappdata_not_found": "Failed to get LocalAppData path",
+      "home_not_found": "Failed to get home directory",
+      "unsupported_os": "Unsupported operating system",
+      "mod_path_not_exists": "Mod path does not exist: {path}",
+      "game_path_not_exists": "Game path does not exist: {path}",
+      "install_failed": "Error installing mod: {error}",
+      "game_path_not_found": "Game path not found"
+    }
+  },
+  "quickbms": {
+    "errors": {
+      "unpack_file_not_found": "File to unpack not found: {path}",
+      "quickbms_not_found": "QuickBMS not found: {path}",
+      "script_not_found": "Unpacking script not found: {path}",
+      "unpack_failed": "Error unpacking file. Exit code: {code}",
+      "unpack_error": "Error during unpacking: {error}"
+    },
+    "logs": {
+      "unpack_start": "Starting unpacking file: {path}",
+      "unpack_path": "Unpacking path: {path}",
+      "preparing": "Preparing for unpacking...",
+      "create_mod_dir": "Creating directory for mod unpacking: {path}",
+      "checking_components": "Checking QuickBMS components:",
+      "quickbms_exe": "- QuickBMS exe: {path}",
+      "bms_script": "- BMS script: {path}",
+      "start_process": "Starting unpacking process...",
+      "executing_command": "Executing command: {command}",
+      "quickbms_output": "QuickBMS: {line}",
+      "quickbms_error": "QuickBMS Error: {line}",
+      "moving_to_backup": "Moving file to backup...",
+      "backup_path": "Moving file to backup: {path}",
+      "file_moved": "File {source} moved to backup: {target}",
+      "unpack_complete": "Unpacking completed successfully",
+      "checking_quickbms": "Checking QuickBMS in: {path}",
+      "checking_script": "Checking script in: {path}",
+      "unpacking_file": "Unpacking: {file}"
+    }
+  },
+  "unpacking_status": {
+    "start": "Starting unpacking {file}...",
+    "complete": "Unpacking completed"
+  },
+  "mod_list_item": {
+    "dialogs": {
+      "edit": {
+        "title": "Edit mod",
+        "name_label": "Mod name",
+        "nexus_url_label": "Nexus Mods link",
+        "nexus_url_hint": "https://www.nexusmods.com/marvelrivals/mods/...",
+        "update_info": "Update information",
+        "cancel": "Cancel",
+        "save": "Save"
+      },
+      "add_tag": {
+        "title": "Add tag",
+        "label": "Tag name",
+        "hint": "Enter tag name",
+  "cancel": "Cancel",
+        "add": "Add"
+      },
+      "update": {
+        "title": "Update available",
+        "message": "A new version is available for the mod",
+        "later": "Later",
+        "download": "Download"
+      }
+    },
+    "tooltips": {
+      "add_tag": "Add tag",
+      "check_updates": "Check for updates",
+      "disable": "Disable",
+      "enable": "Enable"
+    },
+    "errors": {
+      "update_check": "Update check error: {error}"
+    },
+    "notifications": {
+      "no_updates": "No updates found"
+    }
+  },
+  "mod_list_panel": {
+    "search": "Search...",
+    "empty_list": {
+      "enabled": "Drag a mod here to enable it",
+      "disabled": "Drag a mod here to disable it"
+    },
+    "errors": {
+      "toggle": "Error: {error}"
+    }
+  },
+  "unpacking_progress": {
+    "title": "Unpacking Files",
+    "message": "Game files are being unpacked. This may take about an hour.\nPlease do not close the application.",
+    "default_status": "Preparing for unpacking..."
+  }
+} 
