@@ -29,6 +29,7 @@ class CharacterService {
     '1037': 'Magneto',
     '1038': 'Scarlet Witch',
     '1039': 'Thor',
+    '1040': 'Mr. Fantastic',
     '1041': 'Winter Soldier',
     '1042': 'Peni Parker',
     '1043': 'Star Lord',

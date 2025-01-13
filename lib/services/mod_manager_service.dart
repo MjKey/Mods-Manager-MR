@@ -3,6 +3,8 @@ import 'package:path/path.dart' as path;
 import 'package:crypto/crypto.dart';
 import '../services/settings_service.dart';
 import '../services/localization_service.dart';
+import '../services/quickbms_service.dart';
+import '../services/repak_service.dart';
 
 class ModManagerService {
   static final LocalizationService _localization = LocalizationService();
@@ -122,7 +124,29 @@ class ModManagerService {
     }
   }
 
-  // Включаем мод
+  // Определяем метод распаковки в зависимости от типа файла
+  static Future<void> unpackFile(String pakFilePath, {String? outputPath}) async {
+    final fileName = path.basename(pakFilePath).toLowerCase();
+    final isGameSystemPak = fileName == 'pakchunkcharacter-windows.pak' || 
+                           fileName == 'pakchunkwwise-windows.pak';
+    
+    print('Распаковка файла: $pakFilePath');
+    print('Метод распаковки: ${isGameSystemPak ? 'QuickBMS' : 'Repak'}');
+    
+    if (isGameSystemPak) {
+      // Для системных файлов игры используем QuickBMS
+      await QuickBMSService.unpackMod(pakFilePath, outputPath: outputPath);
+    } else {
+      // Для ВСЕХ остальных .pak файлов (включая моды) используем repak
+      final finalOutputPath = outputPath ?? path.join(
+        path.dirname(pakFilePath),
+        path.basenameWithoutExtension(pakFilePath)
+      );
+      await RepakService.unpackMod(pakFilePath, outputPath: finalOutputPath);
+    }
+  }
+
+  // Включаем мод с учетом разных методов распаковки
   static Future<void> enableMod(String modPath, String gamePath) async {
     final modName = path.basename(modPath);
     final marvelDir = path.join(modPath, 'Marvel');
@@ -139,20 +163,46 @@ class ModManagerService {
         final relativePath = path.relative(entity.path, from: marvelDir);
         final targetPath = path.join(gameMarvelDir, relativePath);
         
-        // Создаем бэкап если файл существует
-        if (await File(targetPath).exists()) {
-          try {
-            await _backupFile(targetPath, modName);
-          } catch (e) {
-            throw Exception(_localization.translate('mod_manager.errors.backup_failed', {'error': e.toString()}));
+        // Если это .pak файл, используем соответствующий метод распаковки
+        if (path.extension(entity.path).toLowerCase() == '.pak') {
+          print('Обнаружен .pak файл в моде: ${entity.path}');
+          
+          // Создаем директории если нужно
+          final targetDir = Directory(path.dirname(targetPath));
+          if (!await targetDir.exists()) {
+            await targetDir.create(recursive: true);
           }
-        }
+          
+          // Сначала копируем .pak файл
+          await entity.copy(targetPath);
+          print('Скопирован .pak файл: $targetPath');
+          
+          // Затем распаковываем его через repak (т.к. это файл мода)
+          final outputPath = path.join(
+            path.dirname(targetPath),
+            path.basenameWithoutExtension(targetPath)
+          );
+          await RepakService.unpackMod(targetPath, outputPath: outputPath);
+          
+          // После успешной распаковки удаляем .pak файл
+          await File(targetPath).delete();
+          print('Удален временный .pak файл после распаковки: $targetPath');
+        } else {
+          // Для не-.pak файлов создаем бэкап если файл существует
+          if (await File(targetPath).exists()) {
+            try {
+              await _backupFile(targetPath, modName);
+            } catch (e) {
+              throw Exception(_localization.translate('mod_manager.errors.backup_failed', {'error': e.toString()}));
+            }
+          }
 
-        // Создаем директории если нужно
-        await Directory(path.dirname(targetPath)).create(recursive: true);
-        
-        // Копируем файл мода
-        await entity.copy(targetPath);
+          // Создаем директории если нужно
+          await Directory(path.dirname(targetPath)).create(recursive: true);
+          
+          // Копируем обычный файл
+          await entity.copy(targetPath);
+        }
       }
     }
   }

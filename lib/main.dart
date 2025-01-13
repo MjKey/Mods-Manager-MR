@@ -5,9 +5,11 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'screens/home_screen.dart';
 import 'screens/settings_screen.dart';
 import 'providers/mods_provider.dart';
+import 'providers/presets_provider.dart';
 import 'services/game_paths_service.dart';
 import 'services/quickbms_service.dart';
 import 'services/localization_service.dart';
+import 'services/presets_service.dart';
 import 'dart:io';
 import 'widgets/unpacking_progress_dialog.dart';
 import 'services/assets_downloader_service.dart';
@@ -18,10 +20,15 @@ void main() async {
   // Инициализируем сервис локализации
   await LocalizationService().init();
   
+  // Инициализируем сервис пресетов
+  await PresetsService.initialize();
+  
   // Проверяем наличие QuickBMS до создания приложения
   final quickbmsDir = path.join(Directory.current.path, 'assets', 'quickbms');
+  
   if (!await Directory(quickbmsDir).exists() || 
-      !await File(path.join(quickbmsDir, 'quickbms_4gb_files.exe')).exists()) {
+      !await File(path.join(quickbmsDir, 'quickbms_4gb_files.exe')).exists() ||
+      !await File(path.join(quickbmsDir, 'repak.exe')).exists()) {
     
     // Создаем временный виджет для показа диалога
     final tempWidget = MultiProvider(
@@ -171,6 +178,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ModsProvider()),
+        ChangeNotifierProvider(create: (_) => PresetsProvider()),
         ChangeNotifierProvider(create: (_) => LocalizationService()),
       ],
       child: Consumer<LocalizationService>(
@@ -256,11 +264,17 @@ class _InitialCheckScreenState extends State<InitialCheckScreen> {
           ),
         );
       } else {
-        // Проверяем наличие файла pakchunkCharacter-Windows.pak
+        // Проверяем наличие файлов для распаковки
         final paksPath = path.join(gamePath, 'MarvelGame', 'Marvel', 'Content', 'Paks');
         final characterPakPath = path.join(paksPath, 'pakchunkCharacter-Windows.pak');
+        final wwisePakPath = path.join(paksPath, 'pakchunkWwise-Windows.pak');
+        final vfxPakPath = path.join(paksPath, 'pakchunkVFX-Windows.pak');
         
-        if (await File(characterPakPath).exists()) {
+        final needsUnpacking = await File(characterPakPath).exists() || 
+                              await File(wwisePakPath).exists() ||
+                              await File(vfxPakPath).exists();
+        
+        if (needsUnpacking) {
           if (!mounted) return;
           
           // Проверяем наличие QuickBMS
@@ -278,104 +292,109 @@ class _InitialCheckScreenState extends State<InitialCheckScreen> {
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pushReplacementNamed(context, '/settings'),
-                      child: Text(localization.translate('dialogs.game_path.go_to_settings')),
+                      child: Text(localization.translate('game_paths.errors.ok')),
                     ),
                   ],
                 ),
               );
-              return;
             }
+            return;
           }
-          
-          final shouldUnpack = await showDialog<bool>(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => AlertDialog(
-              title: Text(localization.translate('dialogs.unpacking.title')),
-              content: Text(localization.translate('dialogs.unpacking.message')),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: Text(localization.translate('dialogs.unpacking.cancel')),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  child: Text(localization.translate('dialogs.unpacking.continue')),
-                ),
-              ],
-            ),
-          );
 
-          if (shouldUnpack == true && mounted) {
+          // Показываем диалог подтверждения распаковки
+          if (mounted) {
             final confirmed = await showDialog<bool>(
               context: context,
               barrierDismissible: false,
-              builder: (BuildContext dialogContext) {
-                final localization = context.read<LocalizationService>();
-                return AlertDialog(
+              builder: (context) => AlertDialog(
+                title: Text(localization.translate('dialogs.unpacking.title')),
+                content: Text(localization.translate('dialogs.unpacking.message')),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: Text(localization.translate('dialogs.unpacking.cancel')),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    child: Text(localization.translate('dialogs.unpacking.continue')),
+                  ),
+                ],
+              ),
+            );
+
+            if (confirmed == true && mounted) {
+              // Показываем предупреждение
+              final proceedWithUnpacking = await showDialog<bool>(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => AlertDialog(
                   title: Text(localization.translate('dialogs.unpacking.warning.title')),
                   content: Text(localization.translate('dialogs.unpacking.warning.message')),
                   actions: [
                     TextButton(
-                      onPressed: () => Navigator.pop(dialogContext, false),
+                      onPressed: () => Navigator.pop(context, false),
                       child: Text(localization.translate('dialogs.unpacking.warning.cancel')),
                     ),
                     TextButton(
-                      onPressed: () => Navigator.pop(dialogContext, true),
+                      onPressed: () => Navigator.pop(context, true),
                       child: Text(localization.translate('dialogs.unpacking.warning.continue')),
                     ),
                   ],
-                );
-              },
-            );
+                ),
+              );
 
-            if (confirmed == true && mounted) {
-              try {
-                print('Начинаем процесс распаковки...');
-                
-                // Показываем диалог прогресса
-                showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (context) => const UnpackingProgressDialog(),
-                );
-
-                print('Диалог прогресса показан, запускаем распаковку...');
-                
-                // Распаковываем файл
-                await QuickBMSService.unpackMod(
-                  characterPakPath,
-                  moveToBackup: true,
-                );
-
-                print('Распаковка завершена успешно');
-                
-                // Закрываем диалог прогресса
-                if (mounted) {
-                  Navigator.of(context).pop();
-                }
-              } catch (e) {
-                print('Ошибка при распаковке: $e');
-                if (mounted) {
-                  // Закрываем диалог прогресса
-                  Navigator.of(context).pop();
+              if (proceedWithUnpacking == true && mounted) {
+                try {
+                  print('Начинаем процесс распаковки...');
                   
-                  await showDialog(
+                  // Показываем диалог прогресса
+                  showDialog(
                     context: context,
-                    builder: (BuildContext dialogContext) {
-                      final localization = context.read<LocalizationService>();
-                      return AlertDialog(
+                    barrierDismissible: false,
+                    builder: (context) => const UnpackingProgressDialog(),
+                  );
+
+                  print('Диалог прогресса показан, запускаем распаковку...');
+                  
+                  // Распаковываем файлы последовательно
+                  if (await File(characterPakPath).exists()) {
+                    await QuickBMSService.unpackMod(
+                      characterPakPath,
+                      moveToBackup: true,
+                    );
+                  }
+                  
+                  if (await File(wwisePakPath).exists()) {
+                    await QuickBMSService.unpackMod(
+                      wwisePakPath,
+                      moveToBackup: true,
+                    );
+                  }
+
+                  if (await File(vfxPakPath).exists()) {
+                    await QuickBMSService.unpackMod(
+                      vfxPakPath,
+                      moveToBackup: true,
+                    );
+                  }
+
+                } catch (e) {
+                  print('Ошибка при распаковке: $e');
+                  if (mounted) {
+                    await showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
                         title: Text(localization.translate('dialogs.error.title')),
                         content: Text(localization.translate('dialogs.error.unpacking_failed', {'error': e.toString()})),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pushReplacementNamed(context, '/settings'),
-                            child: Text(localization.translate('dialogs.game_path.go_to_settings')),
+                            child: Text(localization.translate('game_paths.errors.ok')),
                           ),
                         ],
-                      );
-                    },
-                  );
+                      ),
+                    );
+                  }
                   return;
                 }
               }

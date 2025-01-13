@@ -100,26 +100,30 @@ class ModListPanel extends StatelessWidget {
                   ),
                 )
               else
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: mods.length,
-                  itemBuilder: (context, index) {
-                    final mod = mods[index];
-                    return ModListItem(
-                      mod: mod,
-                      onToggle: () => _handleToggle(context, mod),
-                      onRename: (newName) async {
-                        try {
-                          await onRename(mod, newName);
-                        } catch (e) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(_localization.translate('mod_list_panel.errors.toggle', {'error': e.toString()}))),
-                          );
-                        }
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: mods.length,
+                      itemBuilder: (context, index) {
+                        final mod = mods[index];
+                        return ModListItem(
+                          mod: mod,
+                          onToggle: () => _handleToggle(context, mod),
+                          onRename: (newName) async {
+                            try {
+                              await onRename(mod, newName);
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(_localization.translate('mod_list_panel.errors.toggle', {'error': e.toString()}))),
+                              );
+                            }
+                          },
+                        );
                       },
-                    );
-                  },
+                    ),
+                  ),
                 ),
             ],
           ),

@@ -11,6 +11,7 @@ import '../services/settings_service.dart';
 import '../services/nexus_mods_service.dart';
 import '../services/localization_service.dart';
 import 'package:archive/archive.dart';
+import '../services/repak_service.dart';
 
 class ModsProvider with ChangeNotifier {
   final List<Mod> _mods = [];
@@ -107,7 +108,7 @@ class ModsProvider with ChangeNotifier {
 
         try {
           final archive = ZipDecoder().decodeBytes(bytes);
-          final tempDir = await Directory(path.join(QuickBMSService.unpackedModsPath, 'temp_${DateTime.now().millisecondsSinceEpoch}')).create();
+          final tempDir = await Directory(path.join(QuickBMSService.unpackedModsPath, '.temp_unpack')).create();
           needCleanup = true;
 
           // Ищем .pak файл или папку Marvel
@@ -177,8 +178,8 @@ class ModsProvider with ChangeNotifier {
         throw Exception(_localization.translate('mods.errors.name_exists'));
       }
       
-      // Распаковываем мод
-      await QuickBMSService.unpackMod(pakFilePath);
+      // Распаковываем мод через repak
+      await RepakService.unpackMod(pakFilePath, outputPath: unpackedPath);
       
       // Определяем персонажа
       final character = await CharacterService.detectCharacterFromModPath(unpackedPath);
@@ -297,15 +298,42 @@ class ModsProvider with ChangeNotifier {
 
   Future<void> removeMod(Mod mod) async {
     try {
+      debugPrint(_localization.translate('delete_logs.start', {'name': mod.name}));
+      
+      // Если мод включен, сначала отключаем его
       if (mod.isEnabled) {
+        debugPrint(_localization.translate('delete_logs.removing_files'));
         await PlatformService.disableMod(mod.unpackedPath);
       }
+
+      // Удаляем директорию мода
+      final modDir = Directory(mod.unpackedPath);
+      if (await modDir.exists()) {
+        await modDir.delete(recursive: true);
+      }
+
+      // Удаляем бэкапы мода из BackupPak
+      final backupPakDir = Directory(path.join(QuickBMSService.backupPakPath, mod.name));
+      if (await backupPakDir.exists()) {
+        await backupPakDir.delete(recursive: true);
+      }
+
+      // Удаляем бэкапы мода из основной директории бэкапов
+      final backupsDir = Directory(path.join(QuickBMSService.backupsPath, mod.name));
+      if (await backupsDir.exists()) {
+        await backupsDir.delete(recursive: true);
+      }
+
+      // Удаляем из списка модов
       _mods.remove(mod);
+      
       // Сохраняем состояние после удаления
       await SettingsService.saveModsState(_mods);
+      
+      debugPrint(_localization.translate('delete_logs.success', {'name': mod.name}));
       notifyListeners();
     } catch (e) {
-      throw Exception(_localization.translate('mods.errors.remove', {'error': e.toString()}));
+      throw Exception(_localization.translate('delete_errors.failed', {'error': e.toString()}));
     }
   }
 

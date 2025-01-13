@@ -298,15 +298,49 @@ class ModListItem extends StatelessWidget {
             ],
           ),
         ),
-        trailing: IconButton(
-          icon: Icon(
-            mod.isEnabled ? Icons.arrow_back : Icons.arrow_forward,
-            color: mod.isEnabled ? Colors.red : Colors.green,
-          ),
-          onPressed: onToggle,
-          tooltip: mod.isEnabled 
-            ? _localization.translate('mod_list_item.tooltips.disable')
-            : _localization.translate('mod_list_item.tooltips.enable'),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (!mod.isEnabled)
+              IconButton(
+                icon: const Icon(Icons.delete_outline, color: Colors.red),
+                onPressed: () async {
+                  final confirmed = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text(_localization.translate('delete_dialog.title')),
+                      content: Text(_localization.translate('delete_dialog.message', {'name': mod.name})),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: Text(_localization.translate('delete_dialog.cancel')),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: Text(_localization.translate('delete_dialog.confirm')),
+                          style: TextButton.styleFrom(foregroundColor: Colors.red),
+                        ),
+                      ],
+                    ),
+                  );
+
+                  if (confirmed == true) {
+                    await Provider.of<ModsProvider>(context, listen: false).removeMod(mod);
+                  }
+                },
+                tooltip: _localization.translate('mod_list_item.tooltips.delete'),
+              ),
+            IconButton(
+              icon: Icon(
+                mod.isEnabled ? Icons.arrow_back : Icons.arrow_forward,
+                color: mod.isEnabled ? Colors.red : Colors.green,
+              ),
+              onPressed: onToggle,
+              tooltip: mod.isEnabled 
+                ? _localization.translate('mod_list_item.tooltips.disable')
+                : _localization.translate('mod_list_item.tooltips.enable'),
+            ),
+          ],
         ),
       ),
     );
