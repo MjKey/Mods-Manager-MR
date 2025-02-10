@@ -88,13 +88,10 @@ class ModListItem extends StatelessWidget {
     );
 
     if (result != null) {
-      print('Результат диалога: $result');
       if (result['name'] != mod.name) {
-        print('Переименование мода: ${mod.name} -> ${result['name']}');
         onRename(result['name']!);
       }
-      if (result['nexusUrl'] != mod.nexusUrl) {
-        print('Обновление Nexus URL: ${mod.nexusUrl} -> ${result['nexusUrl']}');
+      if (result['nexusUrl'] != mod.nexusUrl && result['nexusUrl']!.isNotEmpty) {
         await Provider.of<ModsProvider>(context, listen: false)
             .updateModFromNexus(mod, result['nexusUrl']!);
       }
@@ -228,7 +225,7 @@ class ModListItem extends StatelessWidget {
                 child: Text(mod.name),
               ),
             ),
-            if (mod.version.isNotEmpty)
+            if (mod.version != null)
               Text(
                 'v${mod.version}',
                 style: TextStyle(

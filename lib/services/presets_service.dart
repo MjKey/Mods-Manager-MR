@@ -2,14 +2,14 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:path/path.dart' as path;
 import '../models/preset.dart';
-import 'quickbms_service.dart';
+import '../services/settings_service.dart';
 import 'localization_service.dart';
 
 class PresetsService {
   static final LocalizationService _localization = LocalizationService();
   
   static String get _presetsPath {
-    return path.join(QuickBMSService.backupsPath, '..', 'Presets');
+    return path.join(SettingsService.defaultAppDataPath, 'Presets');
   }
 
   // Инициализация директории для пресетов

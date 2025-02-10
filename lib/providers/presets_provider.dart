@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../models/preset.dart';
+import '../models/mod.dart';
 import '../services/presets_service.dart';
 import '../services/localization_service.dart';
 import 'mods_provider.dart';
@@ -76,11 +77,19 @@ class PresetsProvider with ChangeNotifier {
 
       // Затем включаем моды из пресета
       for (final modName in preset.enabledMods) {
-        final mod = modsProvider.mods.cast<dynamic>().firstWhere(
+        final mod = modsProvider.mods.firstWhere(
           (m) => m.name == modName,
-          orElse: () => null,
+          orElse: () => Mod(
+            name: modName,
+            description: '',
+            pakPath: '',
+            unpackedPath: '',
+            installDate: DateTime.now(),
+            version: '',
+            isEnabled: false
+          ),
         );
-        if (mod != null && !mod.isEnabled) {
+        if (!mod.isEnabled) {
           await modsProvider.toggleMod(mod);
         }
       }

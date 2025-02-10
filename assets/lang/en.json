@@ -238,28 +238,33 @@
       "unpack_file_not_found": "File to unpack not found: {path}",
       "quickbms_not_found": "QuickBMS not found: {path}",
       "script_not_found": "Unpacking script not found: {path}",
-      "unpack_failed": "Error unpacking file. Exit code: {code}",
-      "unpack_error": "Error during unpacking: {error}"
+      "unpack_failed": "Failed to unpack file. Exit code: {code}",
+      "unpack_error": "Unpacking error: {error}",
+      "backup_failed": "Failed to create backup: {error}",
+      "temp_cleanup_failed": "Failed to clean up temporary files: {error}"
     },
     "logs": {
       "unpack_start": "Starting unpacking file: {path}",
       "unpack_path": "Unpacking path: {path}",
-      "preparing": "Preparing for unpacking...",
-      "create_mod_dir": "Creating directory for mod unpacking: {path}",
+      "preparing": "Preparing to unpack...",
+      "extracting": "Extracting...",
+      "unpacking_file": "Unpacking: {file}",
+      "create_mod_dir": "Creating mod directory: {path}",
       "checking_components": "Checking QuickBMS components:",
       "quickbms_exe": "- QuickBMS exe: {path}",
       "bms_script": "- BMS script: {path}",
       "start_process": "Starting unpacking process...",
       "executing_command": "Executing command: {command}",
-      "quickbms_output": "QuickBMS: {line}",
-      "quickbms_error": "QuickBMS Error: {line}",
-      "moving_to_backup": "Moving file to backup...",
-      "backup_path": "Moving file to backup: {path}",
-      "file_moved": "File {source} moved to backup: {target}",
-      "unpack_complete": "Unpacking completed successfully",
-      "checking_quickbms": "Checking QuickBMS in: {path}",
-      "checking_script": "Checking script in: {path}",
-      "unpacking_file": "Unpacking: {file}"
+      "output": "QuickBMS: {line}",
+      "error": "QuickBMS Error: {line}",
+      "unpack_complete": "Unpacking complete",
+      "cleaning_temp": "Cleaning up temporary files...",
+      "temp_cleaned": "Temporary files removed",
+      "backup_copy": "Copying file to backup: {path}",
+      "removing_original": "Removing original file",
+      "moved_to_backup": "File moved to backup: {path}",
+      "checking_quickbms": "Checking QuickBMS at: {path}",
+      "checking_script": "Checking script at: {path}"
     }
   },
   "unpacking_status": {
@@ -281,7 +286,7 @@
         "title": "Add tag",
         "label": "Tag name",
         "hint": "Enter tag name",
-  "cancel": "Cancel",
+        "cancel": "Cancel",
         "add": "Add"
       },
       "update": {
@@ -294,8 +299,9 @@
     "tooltips": {
       "add_tag": "Add tag",
       "check_updates": "Check for updates",
-      "disable": "Disable",
-      "enable": "Enable"
+      "disable": "Disable mod",
+      "enable": "Enable mod",
+      "delete": "Delete mod"
     },
     "errors": {
       "update_check": "Update check error: {error}"
@@ -318,5 +324,73 @@
     "title": "Unpacking Files",
     "message": "Game files are being unpacked. This may take about an hour.\nPlease do not close the application.",
     "default_status": "Preparing for unpacking..."
+  },
+  "delete_dialog": {
+    "title": "Delete Mod",
+    "message": "Are you sure you want to delete mod \"{name}\"?",
+    "cancel": "Cancel",
+    "confirm": "Delete"
+  },
+  "delete_errors": {
+    "failed": "Failed to delete mod: {error}",
+    "in_use": "Cannot delete mod because it is in use",
+    "not_found": "Mod not found"
+  },
+  "delete_logs": {
+    "start": "Deleting mod: {name}",
+    "success": "Mod successfully deleted: {name}",
+    "removing_files": "Removing mod files..."
+  },
+  "presets": {
+    "title": "Mod Presets",
+    "save": {
+      "title": "Save Preset",
+      "name_label": "Preset Name",
+      "description_label": "Description (optional)",
+      "cancel": "Cancel",
+      "save": "Save",
+      "tooltip": "Save current mods as preset"
+    },
+    "load": {
+      "title": "Load Preset",
+      "no_presets": "No saved presets",
+      "created_at": "Created: {date}",
+      "enabled_mods": "Enabled mods: {count}",
+      "delete": "Delete preset",
+      "load": "Load",
+      "tooltip": "Load saved preset"
+    },
+    "errors": {
+      "save": "Error saving preset: {error}",
+      "load": "Error loading presets: {error}",
+      "load_file": "Error loading preset {file}: {error}",
+      "delete": "Error deleting preset: {error}",
+      "name_exists": "A preset with this name already exists",
+      "empty_name": "Preset name cannot be empty",
+      "no_enabled_mods": "No enabled mods to save"
+    },
+    "messages": {
+      "saved": "Preset saved successfully",
+      "loaded": "Preset loaded successfully",
+      "deleted": "Preset deleted"
+    },
+    "confirm": {
+      "load": {
+        "title": "Load Preset",
+        "message": "Loading a preset will disable all current mods. Continue?",
+        "cancel": "Cancel",
+        "confirm": "Continue"
+      },
+      "delete": {
+        "title": "Delete Preset",
+        "message": "Are you sure you want to delete preset \"{name}\"?",
+        "cancel": "Cancel",
+        "confirm": "Delete"
+      }
+    }
+  },
+  "drop_target": {
+    "drop_here": "Drop files here",
+    "supported_formats": "Supported formats: .pak, .zip, .rar"
   }
 } 

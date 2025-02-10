@@ -1,8 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import '../models/mod.dart';
-import '../services/platform_service.dart';
-import '../services/quickbms_service.dart';
 import '../services/mod_manager_service.dart';
 import '../services/game_paths_service.dart';
 import '../services/character_service.dart';
@@ -10,8 +9,7 @@ import 'package:path/path.dart' as path;
 import '../services/settings_service.dart';
 import '../services/nexus_mods_service.dart';
 import '../services/localization_service.dart';
-import 'package:archive/archive.dart';
-import '../services/repak_service.dart';
+import '../services/archive_service.dart';
 
 class ModsProvider with ChangeNotifier {
   final List<Mod> _mods = [];
@@ -32,9 +30,16 @@ class ModsProvider with ChangeNotifier {
       _isLoading = true;
       notifyListeners();
       
-      final unpackedModsDir = Directory(QuickBMSService.unpackedModsPath);
-      if (!await unpackedModsDir.exists()) {
-        await unpackedModsDir.create(recursive: true);
+      final gamePath = await GamePathsService.getGamePath();
+      if (gamePath == null) {
+        _isLoading = false;
+        notifyListeners();
+        return;
+      }
+
+      final modsDir = path.join(gamePath, 'MarvelGame', 'Marvel', 'Content', 'Paks', '~mods');
+      if (!await Directory(modsDir).exists()) {
+        await Directory(modsDir).create(recursive: true);
         _isLoading = false;
         notifyListeners();
         return;
@@ -44,9 +49,9 @@ class ModsProvider with ChangeNotifier {
       final savedState = await SettingsService.loadModsState();
       final List<Mod> loadedMods = [];
 
-      await for (final entry in unpackedModsDir.list()) {
-        if (entry is Directory) {
-          final modName = path.basename(entry.path);
+      await for (final entry in Directory(modsDir).list()) {
+        if (entry is File && entry.path.toLowerCase().endsWith('.pak')) {
+          final modName = path.basenameWithoutExtension(entry.path);
           final character = await CharacterService.detectCharacterFromModPath(entry.path);
           
           // Получаем сохраненное состояние для этого мода
@@ -55,14 +60,47 @@ class ModsProvider with ChangeNotifier {
           final mod = Mod(
             name: modName,
             description: savedModState?['description'] as String? ?? _localization.translate('mods.default.description'),
-            pakPath: '',
+            pakPath: entry.path,
             unpackedPath: entry.path,
             installDate: savedModState?['installDate'] != null 
                 ? DateTime.parse(savedModState!['installDate'] as String)
                 : (await entry.stat()).modified,
             version: savedModState?['version'] as String? ?? '1.0',
             character: character,
-            isEnabled: savedModState?['isEnabled'] as bool? ?? false,
+            isEnabled: true, // В папке ~mods все моды считаются включенными
+            nexusUrl: savedModState?['nexusUrl'] as String?,
+            nexusImageUrl: savedModState?['nexusImageUrl'] as String?,
+            lastUpdateCheck: savedModState?['lastUpdateCheck'] != null 
+                ? DateTime.parse(savedModState!['lastUpdateCheck'] as String)
+                : null,
+            tags: (savedModState?['tags'] as List<dynamic>?)?.cast<String>() ?? [],
+          );
+
+          loadedMods.add(mod);
+        }
+      }
+
+      // Загружаем отключенные моды из папки для отключенных модов
+      final disabledModsDir = await SettingsService.getModsPath();
+      await for (final entry in Directory(disabledModsDir).list()) {
+        if (entry is File && entry.path.toLowerCase().endsWith('.pak')) {
+          final modName = path.basenameWithoutExtension(entry.path);
+          final character = await CharacterService.detectCharacterFromModPath(entry.path);
+          
+          // Получаем сохраненное состояние для этого мода
+          final savedModState = savedState[modName] as Map<String, dynamic>?;
+          
+          final mod = Mod(
+            name: modName,
+            description: savedModState?['description'] as String? ?? _localization.translate('mods.default.description'),
+            pakPath: entry.path,
+            unpackedPath: entry.path,
+            installDate: savedModState?['installDate'] != null 
+                ? DateTime.parse(savedModState!['installDate'] as String)
+                : (await entry.stat()).modified,
+            version: savedModState?['version'] as String? ?? '1.0',
+            character: character,
+            isEnabled: false, // Моды в папке отключенных модов считаются выключенными
             nexusUrl: savedModState?['nexusUrl'] as String?,
             nexusImageUrl: savedModState?['nexusImageUrl'] as String?,
             lastUpdateCheck: savedModState?['lastUpdateCheck'] != null 
@@ -87,131 +125,120 @@ class ModsProvider with ChangeNotifier {
     }
   }
 
-  Future<void> addMod(String filePath) async {
+  Future<bool> addMod(String filePath) async {
     try {
+      String? pakPath = filePath;
       final extension = path.extension(filePath).toLowerCase();
-      String pakFilePath = filePath;
-      bool needCleanup = false;
-
-      // Если это ZIP архив, распаковываем его
+      
+      // Если это архив, извлекаем из него .pak файл
       if (extension == '.zip') {
-        final bytes = await File(filePath).readAsBytes();
-        
-        // Проверяем, что файл - действительно ZIP архив
-        if (bytes.length < 4 || 
-            bytes[0] != 0x50 || // P
-            bytes[1] != 0x4B || // K
-            bytes[2] != 0x03 || // \x03
-            bytes[3] != 0x04) { // \x04
-          throw FormatException(_localization.translate('mods.errors.not_zip'));
-        }
-
-        try {
-          final archive = ZipDecoder().decodeBytes(bytes);
-          final tempDir = await Directory(path.join(QuickBMSService.unpackedModsPath, '.temp_unpack')).create();
-          needCleanup = true;
-
-          // Ищем .pak файл или папку Marvel
-          bool foundPakOrMarvel = false;
-          for (final file in archive) {
-            final filename = file.name.toLowerCase();
-            if (file.isFile) {
-              final data = file.content as List<int>;
-              final outFile = File(path.join(tempDir.path, filename));
-              await outFile.create(recursive: true);
-              await outFile.writeAsBytes(data);
-
-              if (filename.endsWith('.pak')) {
-                pakFilePath = outFile.path;
-                foundPakOrMarvel = true;
-                break;
-              }
-            } else if (filename.contains('marvel')) {
-              // Если нашли папку Marvel, значит это уже распакованный мод
-              foundPakOrMarvel = true;
-              final modName = path.basenameWithoutExtension(filePath);
-              final targetDir = Directory(path.join(QuickBMSService.unpackedModsPath, modName));
-              await targetDir.create(recursive: true);
-
-              // Копируем содержимое в целевую директорию
-              for (final f in archive) {
-                if (f.isFile) {
-                  final data = f.content as List<int>;
-                  final outFile = File(path.join(targetDir.path, f.name));
-                  await outFile.create(recursive: true);
-                  await outFile.writeAsBytes(data);
-                }
-              }
-
-              // Создаем мод без распаковки
-              final mod = Mod(
-                name: modName,
-                description: _localization.translate('mods.default.description'),
-                pakPath: '',  // Пустой путь, так как .pak файла нет
-                unpackedPath: targetDir.path,
-                installDate: DateTime.now(),
-                version: '1.0',
-                character: await CharacterService.detectCharacterFromModPath(targetDir.path),
-                isEnabled: false,
-              );
-
-              _mods.add(mod);
-              notifyListeners();
-              return;
-            }
-          }
-
-          if (!foundPakOrMarvel) {
-            throw FormatException(_localization.translate('mods.errors.no_pak_or_marvel'));
-          }
-        } catch (e) {
-          if (e is FormatException) rethrow;
-          throw FormatException(_localization.translate('mods.errors.unpack_failed', {'error': e.toString()}));
+        pakPath = await ArchiveService.extractPakFromArchive(filePath);
+        if (pakPath == null) {
+          return false;
         }
       }
-
-      final fileName = path.basenameWithoutExtension(filePath);
-      final unpackedPath = path.join(QuickBMSService.unpackedModsPath, fileName);
-
-      // Проверяем, не существует ли уже мод с таким именем
-      if (_mods.any((mod) => mod.name == fileName)) {
-        throw Exception(_localization.translate('mods.errors.name_exists'));
+      
+      // Проверяем, что это .pak файл
+      if (path.extension(pakPath).toLowerCase() != '.pak') {
+        return false;
       }
-      
-      // Распаковываем мод через repak
-      await RepakService.unpackMod(pakFilePath, outputPath: unpackedPath);
-      
+
+      final gamePath = await GamePathsService.getGamePath();
+      if (gamePath == null) return false;
+
+      final modsDir = path.join(gamePath, 'MarvelGame', 'Marvel', 'Content', 'Paks', '~mods');
+      if (!await Directory(modsDir).exists()) {
+        await Directory(modsDir).create(recursive: true);
+      }
+
+      final modName = path.basenameWithoutExtension(pakPath);
+      final destPath = path.join(modsDir, '$modName.pak');
+
+      // Проверяем, существует ли уже мод с таким именем
+      final existingMod = _mods.firstWhere(
+        (mod) => mod.name == modName,
+        orElse: () => Mod(
+          name: '',
+          pakPath: '',
+          installDate: DateTime.now(),
+          isEnabled: false,
+        ),
+      );
+
+      if (existingMod.name.isNotEmpty) {
+        // Показываем диалог подтверждения обновления
+        final context = GamePathsService.navigatorKey.currentContext;
+        if (context == null) return false;
+
+        final shouldUpdate = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(_localization.translate('mods.dialogs.duplicate.title')),
+            content: Text(_localization.translate('mods.dialogs.duplicate.message', {'name': modName})),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(_localization.translate('mods.dialogs.duplicate.cancel')),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: Text(_localization.translate('mods.dialogs.duplicate.update')),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.blue,
+                ),
+              ),
+            ],
+          ),
+        );
+
+        if (shouldUpdate != true) {
+          // Если это был временный файл из архива, удаляем его
+          if (pakPath != filePath) {
+            await ArchiveService.cleanupTempFiles(pakPath);
+          }
+          return false;
+        }
+
+        // Удаляем старый мод перед обновлением
+        await removeMod(existingMod);
+      }
+
+      // Копируем мод в папку ~mods
+      await File(pakPath).copy(destPath);
+
+      // Если это был временный файл из архива, удаляем его
+      if (pakPath != filePath) {
+        await ArchiveService.cleanupTempFiles(pakPath);
+      }
+
+      // Получаем сохраненное состояние
+      final savedState = await SettingsService.loadModsState();
+      final savedModState = savedState[modName] as Map<String, dynamic>?;
+
       // Определяем персонажа
-      final character = await CharacterService.detectCharacterFromModPath(unpackedPath);
-      
+      final character = await CharacterService.detectCharacterFromModPath(destPath);
+
+      // Добавляем мод в список
       final mod = Mod(
-        name: fileName,
-        description: _localization.translate('mods.default.description'),
-        pakPath: pakFilePath,
-        unpackedPath: unpackedPath,
+        name: modName,
+        description: savedModState?['description'] as String? ?? _localization.translate('mods.default.description'),
+        pakPath: destPath,
+        unpackedPath: destPath,
         installDate: DateTime.now(),
-        version: '1.0',
+        version: savedModState?['version'] as String? ?? '1.0',
         character: character,
-        isEnabled: false,
+        isEnabled: true,
+        tags: (savedModState?['tags'] as List<dynamic>?)?.cast<String>() ?? [],
       );
 
       _mods.add(mod);
-      debugPrint(_localization.translate('mods.logs.add', {
-        'name': mod.name,
-        'character': mod.character ?? 'unknown',
-        'enabled': mod.isEnabled.toString()
-      }));
-
-      // Очищаем временные файлы, если это был ZIP архив
-      if (needCleanup) {
-        final tempDir = Directory(path.dirname(pakFilePath));
-        await tempDir.delete(recursive: true);
-      }
+      await SettingsService.saveModsState(_mods);
 
       notifyListeners();
+      return true;
     } catch (e) {
       debugPrint('Ошибка при добавлении мода: $e');
-      rethrow;
+      return false;
     }
   }
 
@@ -225,17 +252,8 @@ class ModsProvider with ChangeNotifier {
         throw Exception(_localization.translate('mods.errors.name_exists'));
       }
 
-      final oldDir = Directory(mod.unpackedPath);
-      final newPath = path.join(path.dirname(mod.unpackedPath), newName);
-      
-      // Переименовываем директорию
-      await oldDir.rename(newPath);
-
       // Обновляем мод в списке
-      _mods[index] = mod.copyWith(
-        name: newName,
-        unpackedPath: newPath,
-      );
+      _mods[index] = mod.copyWith(name: newName);
       
       // Сохраняем состояние после изменения
       await SettingsService.saveModsState(_mods);
@@ -259,15 +277,58 @@ class ModsProvider with ChangeNotifier {
         }
 
         if (mod.isEnabled) {
-          await ModManagerService.disableMod(mod.unpackedPath, gamePath);
+          // Отключаем мод
+          debugPrint('Отключаем мод: ${mod.name}');
+          
+          // Получаем путь к папке отключенных модов
+          final disabledModsPath = await SettingsService.getModsPath();
+          debugPrint('Путь к папке отключенных модов: $disabledModsPath');
+          
+          // Проверяем существование директории
+          final disabledModsDir = Directory(disabledModsPath);
+          if (!await disabledModsDir.exists()) {
+            debugPrint('Создаем папку для отключенных модов');
+            await disabledModsDir.create(recursive: true);
+          }
+
+          final fileName = path.basename(mod.pakPath);
+          final newPath = path.join(disabledModsPath, fileName);
+          debugPrint('Новый путь для мода: $newPath');
+          
+          // Проверяем существование исходного файла
+          final sourceFile = File(mod.pakPath);
+          if (await sourceFile.exists()) {
+            debugPrint('Копируем файл мода в папку отключенных модов');
+            await sourceFile.copy(newPath);
+            debugPrint('Удаляем оригинальный файл');
+            await sourceFile.delete();
+            
+            // Проверяем, что файл скопировался
+            final newFile = File(newPath);
+            if (!await newFile.exists()) {
+              throw Exception('Файл не был скопирован в папку отключенных модов');
+            }
+          } else {
+            throw Exception('Исходный файл мода не найден: ${mod.pakPath}');
+          }
+
+          // Отключаем мод в системе
+          await ModManagerService.disableMod(mod.pakPath, gamePath);
+
+          _mods[index] = mod.copyWith(
+            isEnabled: false,
+            pakPath: newPath
+          );
+          
+          debugPrint('Мод успешно отключен и перемещен');
         } else {
           // Получаем список файлов, которые будут заменены
-          final affectedFiles = await ModManagerService.getAffectedFiles(mod.unpackedPath, gamePath);
+          final affectedFiles = await ModManagerService.getAffectedFiles(mod.pakPath, gamePath);
           
           // Проверяем конфликты с другими включенными модами
           for (final otherMod in _mods) {
             if (otherMod != mod && otherMod.isEnabled) {
-              final otherAffectedFiles = await ModManagerService.getAffectedFiles(otherMod.unpackedPath, gamePath);
+              final otherAffectedFiles = await ModManagerService.getAffectedFiles(otherMod.pakPath, gamePath);
               final conflicts = affectedFiles.toSet().intersection(otherAffectedFiles.toSet());
               
               if (conflicts.isNotEmpty) {
@@ -279,10 +340,28 @@ class ModsProvider with ChangeNotifier {
             }
           }
 
-          await ModManagerService.enableMod(mod.unpackedPath, gamePath);
+          // Включаем мод
+          await ModManagerService.enableMod(mod.pakPath, gamePath);
+          
+          // Перемещаем файл в папку ~mods
+          final modsDir = path.join(gamePath, 'MarvelGame', 'Marvel', 'Content', 'Paks', '~mods');
+          final fileName = path.basename(mod.pakPath);
+          final newPath = path.join(modsDir, fileName);
+          
+          final sourceFile = File(mod.pakPath);
+          if (await sourceFile.exists()) {
+            await sourceFile.copy(newPath);
+            await sourceFile.delete();
+          }
+
+          _mods[index] = mod.copyWith(
+            isEnabled: true,
+            pakPath: newPath
+          );
+          
+          debugPrint('Мод успешно включен и перемещен');
         }
 
-        _mods[index] = mod.copyWith(isEnabled: !mod.isEnabled);
         // Сохраняем состояние после изменения
         await SettingsService.saveModsState(_mods);
         notifyListeners();
@@ -303,25 +382,16 @@ class ModsProvider with ChangeNotifier {
       // Если мод включен, сначала отключаем его
       if (mod.isEnabled) {
         debugPrint(_localization.translate('delete_logs.removing_files'));
-        await PlatformService.disableMod(mod.unpackedPath);
+        final gamePath = await GamePathsService.getGamePath();
+        if (gamePath != null) {
+          await ModManagerService.disableMod(mod.pakPath, gamePath);
+        }
       }
 
-      // Удаляем директорию мода
-      final modDir = Directory(mod.unpackedPath);
-      if (await modDir.exists()) {
-        await modDir.delete(recursive: true);
-      }
-
-      // Удаляем бэкапы мода из BackupPak
-      final backupPakDir = Directory(path.join(QuickBMSService.backupPakPath, mod.name));
-      if (await backupPakDir.exists()) {
-        await backupPakDir.delete(recursive: true);
-      }
-
-      // Удаляем бэкапы мода из основной директории бэкапов
-      final backupsDir = Directory(path.join(QuickBMSService.backupsPath, mod.name));
-      if (await backupsDir.exists()) {
-        await backupsDir.delete(recursive: true);
+      // Удаляем файл мода
+      final modFile = File(mod.pakPath);
+      if (await modFile.exists()) {
+        await modFile.delete();
       }
 
       // Удаляем из списка модов

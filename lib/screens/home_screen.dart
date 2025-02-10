@@ -3,6 +3,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
 import '../providers/mods_provider.dart';
 import '../widgets/mod_list_panel.dart';
+import '../widgets/drop_target_overlay.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../screens/settings_screen.dart';
 import '../services/localization_service.dart';
@@ -147,45 +148,47 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: Consumer<ModsProvider>(
-        builder: (context, modsProvider, child) {
-          if (modsProvider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          
-          final enabledMods = modsProvider.getEnabledMods(
-            searchQuery: _enabledSearchQuery,
-          );
-          final disabledMods = modsProvider.getDisabledMods(
-            searchQuery: _disabledSearchQuery,
-          );
+      body: DropTargetOverlay(
+        child: Consumer<ModsProvider>(
+          builder: (context, modsProvider, child) {
+            if (modsProvider.isLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            
+            final enabledMods = modsProvider.getEnabledMods(
+              searchQuery: _enabledSearchQuery,
+            );
+            final disabledMods = modsProvider.getDisabledMods(
+              searchQuery: _disabledSearchQuery,
+            );
 
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: ModListPanel(
-                  title: localization.translate('home.mod_lists.disabled'),
-                  mods: disabledMods,
-                  onSearch: (query) => setState(() => _disabledSearchQuery = query),
-                  onToggle: (mod) => modsProvider.toggleMod(mod),
-                  onRename: (mod, newName) => modsProvider.renameMod(mod, newName),
-                  isEnabledList: false,
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: ModListPanel(
+                    title: localization.translate('home.mod_lists.disabled'),
+                    mods: disabledMods,
+                    onSearch: (query) => setState(() => _disabledSearchQuery = query),
+                    onToggle: (mod) => modsProvider.toggleMod(mod),
+                    onRename: (mod, newName) => modsProvider.renameMod(mod, newName),
+                    isEnabledList: false,
+                  ),
                 ),
-              ),
-              Expanded(
-                child: ModListPanel(
-                  title: localization.translate('home.mod_lists.enabled'),
-                  mods: enabledMods,
-                  onSearch: (query) => setState(() => _enabledSearchQuery = query),
-                  onToggle: (mod) => modsProvider.toggleMod(mod),
-                  onRename: (mod, newName) => modsProvider.renameMod(mod, newName),
-                  isEnabledList: true,
+                Expanded(
+                  child: ModListPanel(
+                    title: localization.translate('home.mod_lists.enabled'),
+                    mods: enabledMods,
+                    onSearch: (query) => setState(() => _enabledSearchQuery = query),
+                    onToggle: (mod) => modsProvider.toggleMod(mod),
+                    onRename: (mod, newName) => modsProvider.renameMod(mod, newName),
+                    isEnabledList: true,
+                  ),
                 ),
-              ),
-            ],
-          );
-        },
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -196,7 +199,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowMultiple: true,
-        allowedExtensions: ['pak', 'zip'],
+        allowedExtensions: ['pak', 'zip', 'rar'],
       );
       
       if (result != null && result.files.isNotEmpty) {

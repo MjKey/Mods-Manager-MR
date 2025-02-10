@@ -8,7 +8,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 class SettingsService {
   static const String _settingsFileName = 'settings.json';
   static const String _modsStateFileName = 'mods_state.json';
-  static const String _backupPathKey = 'backup_path';
   static const String _modsPathKey = 'mods_path';
 
   static Future<String> get _settingsPath async {
@@ -26,24 +25,28 @@ class SettingsService {
     return path.join(localAppData!, 'MarvelRivalsModsManager');
   }
 
-  static Future<String> getBackupPath() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_backupPathKey) ?? path.join(defaultAppDataPath, 'Backups');
-  }
-
-  static Future<void> setBackupPath(String path) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_backupPathKey, path);
-  }
-
   static Future<String> getModsPath() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_modsPathKey) ?? path.join(defaultAppDataPath, 'Unpacked Mods');
+    final modsPath = prefs.getString(_modsPathKey) ?? path.join(defaultAppDataPath, 'Disabled Mods');
+    
+    // Создаем директорию, если она не существует
+    final directory = Directory(modsPath);
+    if (!await directory.exists()) {
+      await directory.create(recursive: true);
+    }
+    
+    return modsPath;
   }
 
   static Future<void> setModsPath(String path) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_modsPathKey, path);
+    
+    // Создаем директорию, если она не существует
+    final directory = Directory(path);
+    if (!await directory.exists()) {
+      await directory.create(recursive: true);
+    }
   }
 
   // Структура настроек приложения
@@ -55,7 +58,6 @@ class SettingsService {
         return {
           'gamePath': null,
           'autoCheckUpdates': true,
-          'backupEnabled': true,
           'lastUpdateCheck': null,
         };
       }
@@ -100,17 +102,6 @@ class SettingsService {
     await saveSettings(settings);
   }
 
-  static Future<bool> getBackupEnabled() async {
-    final settings = await loadSettings();
-    return settings['backupEnabled'] as bool? ?? true;
-  }
-
-  static Future<void> setBackupEnabled(bool value) async {
-    final settings = await loadSettings();
-    settings['backupEnabled'] = value;
-    await saveSettings(settings);
-  }
-
   // Структура для хранения состояния модов
   static Future<Map<String, dynamic>> loadModsState() async {
     try {
@@ -151,21 +142,5 @@ class SettingsService {
     } catch (e) {
       print('Ошибка при сохранении состояния модов: $e');
     }
-  }
-
-  // Применяем сохраненное состояние к списку модов
-  static List<Mod> applyModsState(List<Mod> mods, Map<String, dynamic> state) {
-    return mods.map((mod) {
-      final savedState = state[mod.name] as Map<String, dynamic>?;
-      if (savedState != null) {
-        return mod.copyWith(
-          isEnabled: savedState['isEnabled'] as bool? ?? false,
-          description: savedState['description'] as String? ?? mod.description,
-          version: savedState['version'] as String? ?? mod.version,
-          tags: (savedState['tags'] as List<dynamic>?)?.cast<String>() ?? [],
-        );
-      }
-      return mod;
-    }).toList();
   }
 } 

@@ -129,6 +129,14 @@
       "no_pak_or_marvel": "В ZIP архиве не найден .pak файл или папка Marvel",
       "unpack_failed": "Ошибка при распаковке: {error}"
     },
+    "dialogs": {
+      "duplicate": {
+        "title": "Мод уже существует",
+        "message": "Мод с именем \"{name}\" уже установлен. Хотите обновить его?",
+        "cancel": "Отмена",
+        "update": "Обновить"
+      }
+    },
     "logs": {
       "add": "Добавлен мод: {name}, персонаж: {character}, включен: {enabled}",
       "rename": "Мод переименован: {oldName} -> {newName}",
@@ -239,27 +247,32 @@
       "quickbms_not_found": "QuickBMS не найден: {path}",
       "script_not_found": "Скрипт распаковки не найден: {path}",
       "unpack_failed": "Ошибка при распаковке файла. Код возврата: {code}",
-      "unpack_error": "Ошибка при распаковке: {error}"
+      "unpack_error": "Ошибка при распаковке: {error}",
+      "backup_failed": "Ошибка при создании бэкапа: {error}",
+      "temp_cleanup_failed": "Ошибка при очистке временных файлов: {error}"
     },
     "logs": {
       "unpack_start": "Начинаем распаковку файла: {path}",
       "unpack_path": "Путь для распаковки: {path}",
       "preparing": "Подготовка к распаковке...",
-      "create_mod_dir": "Создаем директорию для распаковки мода: {path}",
+      "extracting": "Идет распаковка...",
+      "unpacking_file": "Распаковка: {file}",
+      "create_mod_dir": "Создаем директорию для мода: {path}",
       "checking_components": "Проверяем компоненты QuickBMS:",
       "quickbms_exe": "- QuickBMS exe: {path}",
       "bms_script": "- BMS скрипт: {path}",
       "start_process": "Запускаем процесс распаковки...",
       "executing_command": "Выполняем команду: {command}",
-      "quickbms_output": "QuickBMS: {line}",
-      "quickbms_error": "QuickBMS Error: {line}",
-      "moving_to_backup": "Перемещение файла в бэкап...",
-      "backup_path": "Перемещаем файл в бэкап: {path}",
-      "file_moved": "Файл {source} перемещен в бэкап: {target}",
-      "unpack_complete": "Распаковка успешно завершена",
+      "output": "QuickBMS: {line}",
+      "error": "Ошибка QuickBMS: {line}",
+      "unpack_complete": "Распаковка завершена",
+      "cleaning_temp": "Очистка временных файлов...",
+      "temp_cleaned": "Временные файлы удалены",
       "checking_quickbms": "Проверяем наличие QuickBMS в: {path}",
       "checking_script": "Проверяем наличие скрипта в: {path}",
-      "unpacking_file": "Распаковка: {file}"
+      "backup_copy": "Копирование файла в бэкап: {path}",
+      "removing_original": "Удаление оригинального файла",
+      "moved_to_backup": "Файл перемещен в бэкап: {path}"
     }
   },
   "unpacking_status": {
@@ -281,7 +294,7 @@
         "title": "Добавить тег",
         "label": "Название тега",
         "hint": "Введите название тега",
-  "cancel": "Отмена",
+        "cancel": "Отмена",
         "add": "Добавить"
       },
       "update": {
@@ -289,13 +302,20 @@
         "message": "Для мода доступна новая версия",
         "later": "Позже",
         "download": "Скачать"
+      },
+      "delete": {
+        "title": "Удаление мода",
+        "message": "Вы уверены, что хотите удалить мод \"{name}\"?",
+        "cancel": "Отмена",
+        "confirm": "Удалить"
       }
     },
     "tooltips": {
       "add_tag": "Добавить тег",
       "check_updates": "Проверить обновления",
-      "disable": "Отключить",
-      "enable": "Включить"
+      "disable": "Отключить мод",
+      "enable": "Включить мод",
+      "delete": "Удалить мод"
     },
     "errors": {
       "update_check": "Ошибка проверки обновлений: {error}"
@@ -318,5 +338,99 @@
     "title": "Распаковка файлов",
     "message": "Идет распаковка файлов игры. Это может занять около часа.\nПожалуйста, не закрывайте приложение.",
     "default_status": "Подготовка к распаковке..."
+  },
+  "repak": {
+    "errors": {
+      "unpack_file_not_found": "Файл для распаковки не найден: {path}",
+      "repak_not_found": "Repak не найден: {path}",
+      "unpack_failed": "Ошибка при распаковке файла. Код возврата: {code}",
+      "unpack_error": "Ошибка при распаковке: {error}"
+    },
+    "logs": {
+      "unpack_start": "Начинаем распаковку файла: {path}",
+      "unpack_path": "Путь для распаковки: {path}",
+      "preparing": "Подготовка к распаковке...",
+      "checking_components": "Проверяем компоненты Repak:",
+      "checking_repak": "Проверяем наличие Repak: {path}",
+      "output": "Вывод Repak: {line}",
+      "error": "Ошибка Repak: {line}",
+      "unpacking_progress": "Прогресс распаковки: {progress}",
+      "unpack_complete": "Распаковка завершена"
+    }
+  },
+  "delete_dialog": {
+    "title": "Удаление мода",
+    "message": "Вы уверены, что хотите удалить мод \"{name}\"?",
+    "cancel": "Отмена",
+    "confirm": "Удалить"
+  },
+  "delete_errors": {
+    "failed": "Не удалось удалить мод: {error}",
+    "in_use": "Невозможно удалить мод, так как он используется",
+    "not_found": "Мод не найден"
+  },
+  "delete_logs": {
+    "start": "Удаление мода: {name}",
+    "success": "Мод успешно удален: {name}",
+    "removing_files": "Удаление файлов мода..."
+  },
+  "presets": {
+    "title": "Пресеты модов",
+    "save": {
+      "title": "Сохранить пресет",
+      "name_label": "Название пресета",
+      "description_label": "Описание (необязательно)",
+      "cancel": "Отмена",
+      "save": "Сохранить",
+      "tooltip": "Сохранить текущие моды как пресет"
+    },
+    "load": {
+      "title": "Загрузить пресет",
+      "no_presets": "Нет сохраненных пресетов",
+      "created_at": "Создан: {date}",
+      "enabled_mods": "Включенные моды: {count}",
+      "delete": "Удалить пресет",
+      "load": "Загрузить",
+      "tooltip": "Загрузить сохраненный пресет"
+    },
+    "errors": {
+      "save": "Ошибка при сохранении пресета: {error}",
+      "load": "Ошибка при загрузке пресетов: {error}",
+      "load_file": "Ошибка при загрузке пресета {file}: {error}",
+      "delete": "Ошибка при удалении пресета: {error}",
+      "name_exists": "Пресет с таким именем уже существует",
+      "empty_name": "Название пресета не может быть пустым",
+      "no_enabled_mods": "Нет включенных модов для сохранения"
+    },
+    "messages": {
+      "saved": "Пресет успешно сохранен",
+      "loaded": "Пресет успешно загружен",
+      "deleted": "Пресет удален"
+    },
+    "confirm": {
+      "load": {
+        "title": "Загрузка пресета",
+        "message": "При загрузке пресета все текущие моды будут отключены. Продолжить?",
+        "cancel": "Отмена",
+        "confirm": "Продолжить"
+      },
+      "delete": {
+        "title": "Удаление пресета",
+        "message": "Вы уверены, что хотите удалить пресет \"{name}\"?",
+        "cancel": "Отмена",
+        "confirm": "Удалить"
+      }
+    }
+  },
+  "drop_target": {
+    "drop_here": "Перетащите файлы сюда",
+    "supported_formats": "Поддерживаемые форматы: .pak, .zip"
+  },
+  "archive": {
+    "errors": {
+      "unsupported_format": "Неподдерживаемый формат архива",
+      "unsupported_format_rar": "Формат .rar не поддерживается. Поддерживаются только .pak файлы или .zip архивы с .pak файлом внутри",
+      "no_pak_found": "В архиве не найден .pak файл"
+    }
   }
 } 

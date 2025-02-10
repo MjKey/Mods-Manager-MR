@@ -2,9 +2,7 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
-import '../widgets/unpacking_progress_dialog.dart';
 import 'game_finder_service.dart';
-import 'quickbms_service.dart';
 import 'cache_service.dart';
 import 'localization_service.dart';
 
@@ -43,251 +41,39 @@ class GamePathsService {
       throw Exception(_localization.translate('game_paths.errors.invalid_path'));
     }
 
+    // Создаем папку ~mods если её нет
+    final modsPath = path.join(paksPath, '~mods');
+    if (!await Directory(modsPath).exists()) {
+      await Directory(modsPath).create();
+    }
+
     await _initPrefs();
     await _prefs!.setString(_gamePathKey, gamePath);
     await CacheService.cacheGamePath(gamePath);
+  }
 
-    // Проверяем наличие файла для распаковки
-    final characterPakPath = path.join(paksPath, 'pakchunkCharacter-Windows.pak');
-    if (await File(characterPakPath).exists()) {
+  static Future<void> checkGamePath() async {
+    final gamePath = await getGamePath();
+    if (gamePath == null) {
       final context = navigatorKey.currentContext;
-      if (context != null) {
-        // Проверяем наличие QuickBMS
-        try {
-          print(_localization.translate('game_paths.logs.checking_quickbms'));
-          await QuickBMSService.checkRequirements();
-        } catch (e) {
-          print(_localization.translate('game_paths.errors.quickbms_check', {'error': e.toString()}));
-          if (context.mounted) {
-            await showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: Text(_localization.translate('dialogs.error.title')),
-                content: Text(_localization.translate('dialogs.error.components_not_found', {'error': e.toString()})),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text(_localization.translate('game_paths.errors.ok')),
-                  ),
-                ],
-              ),
-            );
-          }
-          return;
-        }
-
-        final shouldUnpack = await showDialog<bool>(
+      if (context != null && context.mounted) {
+        await showDialog(
           context: context,
           barrierDismissible: false,
           builder: (context) => AlertDialog(
-            title: Text(_localization.translate('dialogs.unpacking.title')),
-            content: Text(_localization.translate('dialogs.unpacking.message')),
+            title: Text(_localization.translate('dialogs.game_path.title')),
+            content: Text(_localization.translate('dialogs.game_path.message')),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: Text(_localization.translate('dialogs.unpacking.cancel')),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: Text(_localization.translate('dialogs.unpacking.continue')),
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pushReplacementNamed(context, '/settings');
+                },
+                child: Text(_localization.translate('dialogs.game_path.go_to_settings')),
               ),
             ],
           ),
         );
-
-        if (shouldUnpack == true) {
-          final confirmed = await showDialog<bool>(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => AlertDialog(
-              title: Text(_localization.translate('dialogs.unpacking.warning.title')),
-              content: Text(_localization.translate('dialogs.unpacking.warning.message')),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: Text(_localization.translate('dialogs.unpacking.warning.cancel')),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  child: Text(_localization.translate('dialogs.unpacking.warning.continue')),
-                ),
-              ],
-            ),
-          );
-
-          if (confirmed == true) {
-            try {
-              await showDialog(
-                context: context,
-                barrierDismissible: false,
-                builder: (context) => const UnpackingProgressDialog(),
-              );
-
-              // Распаковываем файл
-              await QuickBMSService.unpackMod(
-                characterPakPath,
-                moveToBackup: true,
-              );
-            } catch (e) {
-              print(_localization.translate('dialogs.error.unpacking_failed', {'error': e.toString()}));
-              if (context.mounted) {
-                await showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: Text(_localization.translate('dialogs.error.title')),
-                    content: Text(_localization.translate('dialogs.error.unpacking_failed', {'error': e.toString()})),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: Text(_localization.translate('game_paths.errors.ok')),
-                      ),
-                    ],
-                  ),
-                );
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  static Future<void> checkAndUnpackGameFiles() async {
-    final gamePath = await getGamePath();
-    if (gamePath == null) return;
-
-    final paksPath = path.join(gamePath, 'MarvelGame', 'Marvel', 'Content', 'Paks');
-    
-    // Проверяем наличие файлов для распаковки
-    final characterPakPath = path.join(paksPath, 'pakchunkCharacter-Windows.pak');
-    final wwisePakPath = path.join(paksPath, 'pakchunkWwise-Windows.pak');
-    final vfxPakPath = path.join(paksPath, 'pakchunkVFX-Windows.pak');
-    
-    final needsUnpacking = await File(characterPakPath).exists() || 
-                          await File(wwisePakPath).exists() ||
-                          await File(vfxPakPath).exists();
-
-    if (needsUnpacking) {
-      final context = navigatorKey.currentContext;
-      if (context != null) {
-        // Проверяем наличие QuickBMS
-        try {
-          print(_localization.translate('game_paths.logs.checking_quickbms'));
-          await QuickBMSService.checkRequirements();
-        } catch (e) {
-          print(_localization.translate('game_paths.errors.quickbms_check', {'error': e.toString()}));
-          if (context.mounted) {
-            await showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: Text(_localization.translate('dialogs.error.title')),
-                content: Text(_localization.translate('dialogs.error.components_not_found', {'error': e.toString()})),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text(_localization.translate('game_paths.errors.ok')),
-                  ),
-                ],
-              ),
-            );
-          }
-          return;
-        }
-
-        // Показываем диалог подтверждения распаковки
-        if (context.mounted) {
-          final confirmed = await showDialog<bool>(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => AlertDialog(
-              title: Text(_localization.translate('dialogs.unpacking.title')),
-              content: Text(_localization.translate('dialogs.unpacking.message')),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: Text(_localization.translate('dialogs.unpacking.cancel')),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  child: Text(_localization.translate('dialogs.unpacking.continue')),
-                ),
-              ],
-            ),
-          );
-
-          if (confirmed == true && context.mounted) {
-            // Показываем предупреждение
-            final proceedWithUnpacking = await showDialog<bool>(
-              context: context,
-              barrierDismissible: false,
-              builder: (context) => AlertDialog(
-                title: Text(_localization.translate('dialogs.unpacking.warning.title')),
-                content: Text(_localization.translate('dialogs.unpacking.warning.message')),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    child: Text(_localization.translate('dialogs.unpacking.warning.cancel')),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, true),
-                    child: Text(_localization.translate('dialogs.unpacking.warning.continue')),
-                  ),
-                ],
-              ),
-            );
-
-            if (proceedWithUnpacking == true && context.mounted) {
-              try {
-                // Показываем диалог прогресса
-                showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (context) => const UnpackingProgressDialog(),
-                );
-
-                // Распаковываем файлы последовательно
-                if (await File(characterPakPath).exists()) {
-                  await QuickBMSService.unpackMod(
-                    characterPakPath,
-                    moveToBackup: true,
-                  );
-                }
-                
-                if (await File(wwisePakPath).exists()) {
-                  await QuickBMSService.unpackMod(
-                    wwisePakPath,
-                    moveToBackup: true,
-                  );
-                }
-
-                if (await File(vfxPakPath).exists()) {
-                  await QuickBMSService.unpackMod(
-                    vfxPakPath,
-                    moveToBackup: true,
-                  );
-                }
-
-              } catch (e) {
-                print(_localization.translate('dialogs.error.unpacking_failed', {'error': e.toString()}));
-                if (context.mounted) {
-                  await showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: Text(_localization.translate('dialogs.error.title')),
-                      content: Text(_localization.translate('dialogs.error.unpacking_failed', {'error': e.toString()})),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text(_localization.translate('game_paths.errors.ok')),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-              }
-            }
-          }
-        }
       }
     }
   }
