@@ -24,7 +24,7 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   final String version = '2.2.1';
 
@@ -80,7 +80,7 @@ class MyApp extends StatelessWidget {
 }
 
 class InitialCheckScreen extends StatefulWidget {
-  const InitialCheckScreen({Key? key}) : super(key: key);
+  const InitialCheckScreen({super.key});
 
   @override
   State<InitialCheckScreen> createState() => _InitialCheckScreenState();

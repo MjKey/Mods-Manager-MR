@@ -8,9 +8,9 @@ class DropTargetOverlay extends StatefulWidget {
   final Widget child;
 
   const DropTargetOverlay({
-    Key? key,
+    super.key,
     required this.child,
-  }) : super(key: key);
+  });
 
   @override
   State<DropTargetOverlay> createState() => _DropTargetOverlayState();

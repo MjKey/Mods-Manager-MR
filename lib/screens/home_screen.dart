@@ -12,7 +12,7 @@ import '../widgets/preset_save_dialog.dart';
 import '../widgets/preset_load_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();

@@ -1,7 +1,7 @@
 name: marvel_rivals_mod_manager
 description: Mod Manager for Marvel Rivals 2.0
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.0+2
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -26,16 +26,16 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   intl: ^0.19.0
-  json_annotation: ^4.8.1  # Use the latest version
-  desktop_drop: ^0.4.4  # Use the latest version from pub.dev
 
-
+  json_annotation: ^4.9.0
+  desktop_drop: any
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.0
-  build_runner: ^2.4.6      # Required for code generation
-  json_serializable: ^6.7.1 # Required for JSON serialization
+  json_serializable: ^6.9.4
+  build_runner: ^2.4.15
+
 flutter:
   uses-material-design: true
   assets:

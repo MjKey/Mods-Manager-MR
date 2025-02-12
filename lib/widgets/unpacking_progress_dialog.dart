@@ -4,7 +4,7 @@ import '../services/localization_service.dart';
 
 class UnpackingProgressDialog extends StatelessWidget {
   static final LocalizationService _localization = LocalizationService();
-  const UnpackingProgressDialog({Key? key}) : super(key: key);
+  const UnpackingProgressDialog({super.key});
 
   @override
   Widget build(BuildContext context) {

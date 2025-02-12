@@ -211,10 +211,10 @@ class ModsProvider with ChangeNotifier {
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: Text(_localization.translate('mods.dialogs.duplicate.update')),
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.blue,
                 ),
+                child: Text(_localization.translate('mods.dialogs.duplicate.update')),
               ),
             ],
           ),

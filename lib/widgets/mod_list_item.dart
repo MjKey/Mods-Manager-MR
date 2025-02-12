@@ -11,12 +11,12 @@ class ModListItem extends StatelessWidget {
   final Function(String) onRename;
   static final LocalizationService _localization = LocalizationService();
 
-  ModListItem({
-    Key? key,
+  const ModListItem({
+    super.key,
     required this.mod,
     required this.onToggle,
     required this.onRename,
-  }) : super(key: key);
+  });
 
   Future<void> _showEditDialog(BuildContext context) async {
     final nameController = TextEditingController(text: mod.name);
@@ -373,8 +373,8 @@ class ModListItem extends StatelessWidget {
                         ),
                         TextButton(
                           onPressed: () => Navigator.pop(context, true),
-                          child: Text(_localization.translate('mod_list_item.dialogs.delete.confirm')),
                           style: TextButton.styleFrom(foregroundColor: Colors.red),
+                          child: Text(_localization.translate('mod_list_item.dialogs.delete.confirm')),
                         ),
                       ],
                     ),
