@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'game_finder_service.dart';
 import 'cache_service.dart';
 import 'localization_service.dart';
+import 'patch_manager_service.dart';
 
 class GamePathsService {
   static const String _gamePathKey = 'game_path';
@@ -50,6 +51,13 @@ class GamePathsService {
     await _initPrefs();
     await _prefs!.setString(_gamePathKey, gamePath);
     await CacheService.cacheGamePath(gamePath);
+
+    // Проверяем и переименовываем патч-файлы после установки пути к игре
+    try {
+      await PatchManagerService.renamePatchFiles();
+    } catch (e) {
+      print('Ошибка при проверке патч-файлов: $e');
+    }
   }
 
   static Future<void> checkGamePath() async {

@@ -1,0 +1,221 @@
+{
+  "app": {
+    "title": "Marvel Rivals Mod Manager",
+    "initialization": "Inicialización..."
+  },
+  "game_paths": {
+    "errors": {
+      "get_path": "Error al obtener la ruta del juego: {error}",
+      "invalid_path": "Ruta del juego no válida: carpeta Paks no encontrada"
+    }
+  },
+  "settings": {
+    "title": "Ajustes",
+    "language": "Idioma",
+    "paths": {
+      "game": {
+        "title": "Ruta del juego",
+        "not_found": "No encontrado",
+        "tooltips": {
+          "auto_find": "Buscar automáticamente",
+          "manual_select": "Seleccionar manualmente"
+        },
+        "warning": "Juego no encontrado. Intente buscarlo automáticamente o especifique la ruta manualmente.",
+        "error": "Error: {error}"
+      },
+      "mods": {
+        "title": "Carpeta de mods desactivados",
+        "not_set": "No establecido",
+        "default": "Predeterminado",
+        "tooltip": "Seleccionar carpeta",
+        "dialog_title": "Seleccionar carpeta de mods desactivados"
+      }
+    }
+  },
+  "home": {
+    "tooltips": {
+      "launch_steam": "Iniciar en Steam",
+      "launch_epic": "Iniciar en Epic Games",
+      "add_mod": "Añadir mod",
+      "settings": "Ajustes"
+    },
+    "mod_lists": {
+      "disabled": "Mods desactivados",
+      "enabled": "Mods activados"
+    },
+    "errors": {
+      "add_mod": "Error: {error}"
+    }
+  },
+  "mods": {
+    "default": {
+      "description": "Descripción del mod"
+    },
+    "errors": {
+      "game_path_not_found": "Ruta del juego no encontrada",
+      "mod_conflict": "Conflicto con el mod {modName}. Los siguientes archivos ya están modificados:\n{files}",
+      "rename": "Error al renombrar el mod: {error}",
+      "toggle": "Error al alternar el mod: {error}",
+      "remove": "Error al eliminar el mod: {error}",
+      "tag_exists": "La etiqueta ya existe",
+      "add_tag": "Error al añadir etiqueta: {error}",
+      "remove_tag": "Error al eliminar etiqueta: {error}",
+      "nexus_update": "Error al actualizar la información del mod: {error}",
+      "load": "Error al cargar mods existentes: {error}",
+      "name_exists": "Ya existe un mod con este nombre",
+      "file_not_found": "Archivo no encontrado"
+    },
+    "dialogs": {
+      "duplicate": {
+        "title": "El mod ya existe",
+        "message": "Un mod con el nombre \"{name}\" ya está instalado. ¿Desea actualizarlo?",
+        "cancel": "Cancelar",
+        "update": "Actualizar"
+      }
+    }
+  },
+  "dialogs": {
+    "error": {
+      "title": "Error",
+      "general": "Se ha producido un error: {error}"
+    },
+    "game_path": {
+      "title": "Ruta del juego no encontrada",
+      "message": "Por favor, especifique la ruta del juego en los ajustes.",
+      "go_to_settings": "Ir a ajustes"
+    }
+  },
+  "platform": {
+    "errors": {
+      "localappdata_not_found": "No se pudo encontrar la ruta LocalAppData",
+      "home_not_found": "No se pudo encontrar el directorio home",
+      "unsupported_os": "Sistema operativo no soportado",
+      "mod_path_not_exists": "La ruta del mod no existe: {path}",
+      "game_path_not_exists": "La ruta del juego no existe: {path}",
+      "install_failed": "Error al instalar el mod: {error}",
+      "game_path_not_found": "Ruta del juego no encontrada"
+    }
+  },
+  "nexus_mods": {
+    "errors": {
+      "invalid_url": "URL del mod no válida",
+      "get_info_failed": "Error al obtener información del mod: {code}"
+    }
+  },
+  "mod_list_item": {
+    "dialogs": {
+      "edit": {
+        "title": "Editar mod",
+        "name_label": "Nombre del mod",
+        "nexus_url_label": "Enlace de Nexus Mods",
+        "nexus_url_hint": "https://www.nexusmods.com/marvelrivals/mods/...",
+        "update_info": "Actualizar información",
+        "cancel": "Cancelar",
+        "save": "Guardar",
+        "order_label": "Orden de carga",
+        "file_name": "Nombre del archivo: {name}"
+      },
+      "add_tag": {
+        "title": "Añadir etiqueta",
+        "label": "Nombre de la etiqueta",
+        "hint": "Introducir nombre de la etiqueta",
+        "cancel": "Cancelar",
+        "add": "Añadir"
+      },
+      "update": {
+        "title": "Actualización disponible",
+        "message": "Hay una nueva versión disponible para el mod",
+        "later": "Más tarde",
+        "download": "Descargar"
+      },
+      "delete": {
+        "title": "Eliminar mod",
+        "message": "¿Está seguro de que desea eliminar el mod \"{name}\"?",
+        "cancel": "Cancelar",
+        "confirm": "Eliminar"
+      }
+    },
+    "tooltips": {
+      "add_tag": "Añadir etiqueta",
+      "check_updates": "Buscar actualizaciones",
+      "disable": "Desactivar mod",
+      "enable": "Activar mod",
+      "delete": "Eliminar mod"
+    },
+    "errors": {
+      "update_check": "Error al comprobar actualizaciones: {error}"
+    },
+    "notifications": {
+      "no_updates": "No se encontraron actualizaciones"
+    }
+  },
+  "mod_list_panel": {
+    "search": "Buscar...",
+    "empty_list": {
+      "enabled": "Arrastre un mod aquí para activarlo",
+      "disabled": "Arrastre un mod aquí para desactivarlo"
+    },
+    "errors": {
+      "toggle": "Error: {error}"
+    }
+  },
+  "presets": {
+    "title": "Preajustes de mods",
+    "save": {
+      "title": "Guardar preajuste",
+      "name_label": "Nombre del preajuste",
+      "description_label": "Descripción (opcional)",
+      "cancel": "Cancelar",
+      "save": "Guardar",
+      "tooltip": "Guardar mods actuales como preajuste"
+    },
+    "load": {
+      "title": "Cargar preajuste",
+      "no_presets": "No hay preajustes guardados",
+      "created_at": "Creado: {date}",
+      "enabled_mods": "Mods activados: {count}",
+      "delete": "Eliminar preajuste",
+      "load": "Cargar",
+      "tooltip": "Cargar preajuste guardado"
+    },
+    "errors": {
+      "save": "Error al guardar el preajuste: {error}",
+      "load": "Error al cargar los preajustes: {error}",
+      "load_file": "Error al cargar el preajuste {file}: {error}",
+      "delete": "Error al eliminar el preajuste: {error}",
+      "name_exists": "Ya existe un preajuste con este nombre",
+      "empty_name": "El nombre del preajuste no puede estar vacío",
+      "no_enabled_mods": "No hay mods activados para guardar"
+    },
+    "messages": {
+      "saved": "Preajuste guardado correctamente",
+      "loaded": "Preajuste cargado correctamente",
+      "deleted": "Preajuste eliminado"
+    },
+    "confirm": {
+      "load": {
+        "title": "Cargar preajuste",
+        "message": "Cargar un preajuste desactivará todos los mods actuales. ¿Continuar?",
+        "cancel": "Cancelar",
+        "confirm": "Continuar"
+      },
+      "delete": {
+        "title": "Eliminar preajuste",
+        "message": "¿Está seguro de que desea eliminar el preajuste \"{name}\"?",
+        "cancel": "Cancelar",
+        "confirm": "Eliminar"
+      }
+    }
+  },
+  "drop_target": {
+    "drop_here": "Soltar archivos aquí",
+    "supported_formats": "Formatos soportados: .pak, .zip"
+  },
+  "archive": {
+    "errors": {
+      "unsupported_format": "Formato de archivo no soportado",
+      "unsupported_format_rar": "El formato RAR no está soportado. Solo se admiten archivos .pak o archivos .zip con archivo .pak dentro",
+      "no_pak_found": "No se encontró archivo .pak en el archivo"
+    }
+  }
+} 

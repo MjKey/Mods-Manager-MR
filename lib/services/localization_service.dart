@@ -59,5 +59,16 @@ class LocalizationService extends ChangeNotifier {
   static List<Map<String, String>> get supportedLanguages => [
     {'code': 'en', 'name': 'English'},
     {'code': 'ru', 'name': 'Русский'},
+    {'code': 'de', 'name': 'Deutsch'},
+    {'code': 'es', 'name': 'Español'},
+    {'code': 'fr', 'name': 'Français'},
+    {'code': 'it', 'name': 'Italiano'},
+    {'code': 'ja', 'name': '日本語'},
+    {'code': 'ko', 'name': '한국어'},
+    {'code': 'pl', 'name': 'Polski'},
+    {'code': 'pt', 'name': 'Português'},
+    {'code': 'tr', 'name': 'Türkçe'},
+    {'code': 'zh', 'name': '中文'},
+    {'code': 'el', 'name': 'Elvish/Эльфийский'}
   ];
 } 

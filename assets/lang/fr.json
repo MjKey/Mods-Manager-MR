@@ -1,0 +1,221 @@
+{
+  "app": {
+    "title": "Marvel Rivals Mod Manager",
+    "initialization": "Initialisation..."
+  },
+  "game_paths": {
+    "errors": {
+      "get_path": "Erreur lors de l'obtention du chemin du jeu : {error}",
+      "invalid_path": "Chemin du jeu invalide : dossier Paks introuvable"
+    }
+  },
+  "settings": {
+    "title": "Paramètres",
+    "language": "Langue",
+    "paths": {
+      "game": {
+        "title": "Chemin du jeu",
+        "not_found": "Non trouvé",
+        "tooltips": {
+          "auto_find": "Rechercher automatiquement",
+          "manual_select": "Sélectionner manuellement"
+        },
+        "warning": "Jeu non trouvé. Essayez de le trouver automatiquement ou spécifiez le chemin manuellement.",
+        "error": "Erreur : {error}"
+      },
+      "mods": {
+        "title": "Dossier des mods désactivés",
+        "not_set": "Non défini",
+        "default": "Par défaut",
+        "tooltip": "Sélectionner le dossier",
+        "dialog_title": "Sélectionner le dossier des mods désactivés"
+      }
+    }
+  },
+  "home": {
+    "tooltips": {
+      "launch_steam": "Lancer dans Steam",
+      "launch_epic": "Lancer dans Epic Games",
+      "add_mod": "Ajouter un mod",
+      "settings": "Paramètres"
+    },
+    "mod_lists": {
+      "disabled": "Mods désactivés",
+      "enabled": "Mods activés"
+    },
+    "errors": {
+      "add_mod": "Erreur : {error}"
+    }
+  },
+  "mods": {
+    "default": {
+      "description": "Description du mod"
+    },
+    "errors": {
+      "game_path_not_found": "Chemin du jeu introuvable",
+      "mod_conflict": "Conflit avec le mod {modName}. Les fichiers suivants sont déjà modifiés :\n{files}",
+      "rename": "Erreur lors du renommage du mod : {error}",
+      "toggle": "Erreur lors de la bascule du mod : {error}",
+      "remove": "Erreur lors de la suppression du mod : {error}",
+      "tag_exists": "Le tag existe déjà",
+      "add_tag": "Erreur lors de l'ajout du tag : {error}",
+      "remove_tag": "Erreur lors de la suppression du tag : {error}",
+      "nexus_update": "Erreur lors de la mise à jour des informations du mod : {error}",
+      "load": "Erreur lors du chargement des mods existants : {error}",
+      "name_exists": "Un mod avec ce nom existe déjà",
+      "file_not_found": "Fichier introuvable"
+    },
+    "dialogs": {
+      "duplicate": {
+        "title": "Le mod existe déjà",
+        "message": "Un mod avec le nom \"{name}\" est déjà installé. Voulez-vous le mettre à jour ?",
+        "cancel": "Annuler",
+        "update": "Mettre à jour"
+      }
+    }
+  },
+  "dialogs": {
+    "error": {
+      "title": "Erreur",
+      "general": "Une erreur s'est produite : {error}"
+    },
+    "game_path": {
+      "title": "Chemin du jeu introuvable",
+      "message": "Veuillez spécifier le chemin du jeu dans les paramètres.",
+      "go_to_settings": "Aller aux paramètres"
+    }
+  },
+  "platform": {
+    "errors": {
+      "localappdata_not_found": "Impossible de trouver le chemin LocalAppData",
+      "home_not_found": "Impossible de trouver le répertoire personnel",
+      "unsupported_os": "Système d'exploitation non pris en charge",
+      "mod_path_not_exists": "Le chemin du mod n'existe pas : {path}",
+      "game_path_not_exists": "Le chemin du jeu n'existe pas : {path}",
+      "install_failed": "Erreur lors de l'installation du mod : {error}",
+      "game_path_not_found": "Chemin du jeu introuvable"
+    }
+  },
+  "nexus_mods": {
+    "errors": {
+      "invalid_url": "URL du mod invalide",
+      "get_info_failed": "Erreur lors de l'obtention des informations du mod : {code}"
+    }
+  },
+  "mod_list_item": {
+    "dialogs": {
+      "edit": {
+        "title": "Modifier le mod",
+        "name_label": "Nom du mod",
+        "nexus_url_label": "Lien Nexus Mods",
+        "nexus_url_hint": "https://www.nexusmods.com/marvelrivals/mods/...",
+        "update_info": "Mettre à jour les informations",
+        "cancel": "Annuler",
+        "save": "Enregistrer",
+        "order_label": "Ordre de chargement",
+        "file_name": "Nom du fichier: {name}"
+      },
+      "add_tag": {
+        "title": "Ajouter un tag",
+        "label": "Nom du tag",
+        "hint": "Entrer le nom du tag",
+        "cancel": "Annuler",
+        "add": "Ajouter"
+      },
+      "update": {
+        "title": "Mise à jour disponible",
+        "message": "Une nouvelle version est disponible pour le mod",
+        "later": "Plus tard",
+        "download": "Télécharger"
+      },
+      "delete": {
+        "title": "Supprimer le mod",
+        "message": "Êtes-vous sûr de vouloir supprimer le mod \"{name}\" ?",
+        "cancel": "Annuler",
+        "confirm": "Supprimer"
+      }
+    },
+    "tooltips": {
+      "add_tag": "Ajouter un tag",
+      "check_updates": "Vérifier les mises à jour",
+      "disable": "Désactiver le mod",
+      "enable": "Activer le mod",
+      "delete": "Supprimer le mod"
+    },
+    "errors": {
+      "update_check": "Erreur lors de la vérification des mises à jour: {error}"
+    },
+    "notifications": {
+      "no_updates": "Aucune mise à jour trouvée"
+    }
+  },
+  "mod_list_panel": {
+    "search": "Rechercher...",
+    "empty_list": {
+      "enabled": "Faites glisser un mod ici pour l'activer",
+      "disabled": "Faites glisser un mod ici pour le désactiver"
+    },
+    "errors": {
+      "toggle": "Erreur : {error}"
+    }
+  },
+  "presets": {
+    "title": "Préréglages de mods",
+    "save": {
+      "title": "Enregistrer le préréglage",
+      "name_label": "Nom du préréglage",
+      "description_label": "Description (optionnel)",
+      "cancel": "Annuler",
+      "save": "Enregistrer",
+      "tooltip": "Enregistrer les mods actuels comme préréglage"
+    },
+    "load": {
+      "title": "Charger le préréglage",
+      "no_presets": "Aucun préréglage enregistré",
+      "created_at": "Créé le : {date}",
+      "enabled_mods": "Mods activés : {count}",
+      "delete": "Supprimer le préréglage",
+      "load": "Charger",
+      "tooltip": "Charger un préréglage enregistré"
+    },
+    "errors": {
+      "save": "Erreur lors de l'enregistrement du préréglage : {error}",
+      "load": "Erreur lors du chargement des préréglages : {error}",
+      "load_file": "Erreur lors du chargement du préréglage {file} : {error}",
+      "delete": "Erreur lors de la suppression du préréglage : {error}",
+      "name_exists": "Un préréglage avec ce nom existe déjà",
+      "empty_name": "Le nom du préréglage ne peut pas être vide",
+      "no_enabled_mods": "Aucun mod activé à enregistrer"
+    },
+    "messages": {
+      "saved": "Préréglage enregistré avec succès",
+      "loaded": "Préréglage chargé avec succès",
+      "deleted": "Préréglage supprimé"
+    },
+    "confirm": {
+      "load": {
+        "title": "Charger le préréglage",
+        "message": "Le chargement d'un préréglage désactivera tous les mods actuels. Continuer ?",
+        "cancel": "Annuler",
+        "confirm": "Continuer"
+      },
+      "delete": {
+        "title": "Supprimer le préréglage",
+        "message": "Êtes-vous sûr de vouloir supprimer le préréglage \"{name}\" ?",
+        "cancel": "Annuler",
+        "confirm": "Supprimer"
+      }
+    }
+  },
+  "drop_target": {
+    "drop_here": "Déposer les fichiers ici",
+    "supported_formats": "Formats pris en charge : .pak, .zip"
+  },
+  "archive": {
+    "errors": {
+      "unsupported_format": "Format d'archive non pris en charge",
+      "unsupported_format_rar": "Le format RAR n'est pas pris en charge. Seuls les fichiers .pak ou les archives .zip contenant un fichier .pak sont pris en charge",
+      "no_pak_found": "Aucun fichier .pak trouvé dans l'archive"
+    }
+  }
+} 

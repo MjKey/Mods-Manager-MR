@@ -32,9 +32,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final localization = context.read<LocalizationService>();
+    final String version = '2.2.1';
     return Scaffold(
       appBar: AppBar(
-        title: Text(localization.translate('app.title')),
+        title: Text('${localization.translate('app.title')} $version'),
         actions: [
           IconButton(
             icon: const Icon(Icons.sports_esports),
@@ -199,7 +200,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowMultiple: true,
-        allowedExtensions: ['pak', 'zip', 'rar'],
+        allowedExtensions: ['pak', 'zip'],
       );
       
       if (result != null && result.files.isNotEmpty) {

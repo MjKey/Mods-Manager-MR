@@ -5,20 +5,39 @@ import '../services/localization_service.dart';
 class ModManagerService {
   static final LocalizationService _localization = LocalizationService();
 
+  static String generateFileName(String baseFileName, int order) {
+    // Гарантируем, что order не меньше 0
+    final safeOrder = order.clamp(0, 999);
+    final prefix = safeOrder.toString().padLeft(3, '0');
+    return '${prefix}_$baseFileName';
+  }
+
+  static int? extractOrderFromFileName(String fileName) {
+    final match = RegExp(r'^(\d{3})_').firstMatch(fileName);
+    if (match != null) {
+      return int.tryParse(match.group(1)!);
+    }
+    return null;
+  }
+
+  static String extractBaseFileName(String fileName) {
+    return fileName.replaceFirst(RegExp(r'^\d{3}_'), '');
+  }
+
   // Включаем мод
-  static Future<void> enableMod(String modPath, String gamePath) async {
+  static Future<void> enableMod(String modPath, String gamePath, int order) async {
     final modsDir = path.join(gamePath, 'MarvelGame', 'Marvel', 'Content', 'Paks', '~mods');
     
-    // Создаем директорию ~mods если её нет
-    final modsDirExists = await Directory(modsDir).exists();
-    if (!modsDirExists) {
+    if (!await Directory(modsDir).exists()) {
       await Directory(modsDir).create(recursive: true);
     }
 
-    // Копируем .pak файл в папку ~mods
+    final baseFileName = path.basename(modPath);
+    final newFileName = generateFileName(extractBaseFileName(baseFileName), order);
+    final targetPath = path.join(modsDir, newFileName);
+
     final pakFile = File(modPath);
     if (await pakFile.exists()) {
-      final targetPath = path.join(modsDir, path.basename(modPath));
       await pakFile.copy(targetPath);
     } else {
       throw Exception(_localization.translate('mods.errors.file_not_found'));

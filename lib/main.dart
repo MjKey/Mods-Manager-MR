@@ -8,6 +8,7 @@ import 'providers/presets_provider.dart';
 import 'services/game_paths_service.dart';
 import 'services/localization_service.dart';
 import 'services/presets_service.dart';
+import 'services/patch_manager_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,6 +26,8 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
+  final String version = '2.2.1';
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -36,7 +39,7 @@ class MyApp extends StatelessWidget {
       child: Consumer<LocalizationService>(
         builder: (context, localizationService, child) {
           return MaterialApp(
-            title: localizationService.translate('app.title'),
+            title: '${localizationService.translate('app.title')} $version',
             theme: ThemeData.dark(useMaterial3: true).copyWith(
               colorScheme: ColorScheme.dark(
                 primary: Colors.blue,
@@ -116,6 +119,13 @@ class _InitialCheckScreenState extends State<InitialCheckScreen> {
           ),
         );
       } else {
+        // Проверяем и переименовываем патч-файлы после нахождения пути к игре
+        try {
+          await PatchManagerService.renamePatchFiles();
+        } catch (e) {
+          print('Ошибка при проверке патч-файлов: $e');
+        }
+
         if (mounted) {
           Navigator.pushReplacementNamed(context, '/home');
         }

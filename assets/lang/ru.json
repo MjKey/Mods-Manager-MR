@@ -6,52 +6,12 @@
   "game_paths": {
     "errors": {
       "get_path": "Ошибка при получении пути к игре: {error}",
-      "invalid_path": "Неверный путь к игре: папка Paks не найдена",
-      "quickbms_check": "Ошибка при проверке QuickBMS: {error}",
-      "ok": "OK"
-    },
-    "logs": {
-      "checking_quickbms": "Проверяем наличие QuickBMS..."
-    }
-  },
-  "downloader": {
-    "errors": {
-      "web_unsupported": "Загрузка QuickBMS не поддерживается в веб-версии приложения",
-      "download_failed": "Ошибка загрузки файла: сервер вернул код {code}. Возможно, файл недоступен или сервер требует авторизацию.",
-      "not_zip": "Загруженный файл не является ZIP архивом",
-      "unpack_failed": "Не удалось распаковать архив: {error}"
-    },
-    "logs": {
-      "download_url": "URL для загрузки: {url}",
-      "save_path": "Путь для сохранения: {path}",
-      "request_headers": "Отправка запроса с заголовками: {headers}",
-      "response_code": "Код ответа: {code}",
-      "file_size": "Размер файла: {size} байт",
-      "download_start": "Начало загрузки файла...",
-      "received": "Получено: {received} байт из {total}",
-      "download_complete": "Загрузка завершена",
-      "file_length": "Размер загруженного файла: {size} байт",
-      "first_bytes": "Первые 10 байт файла: {bytes}"
-    },
-    "progress": {
-      "title": "Загрузка компонентов",
-      "downloaded": "Загружено: {downloaded} МБ из {total} МБ"
+      "invalid_path": "Неверный путь к игре: папка Paks не найдена"
     }
   },
   "settings": {
     "title": "Настройки",
     "language": "Язык",
-    "update": {
-      "check": "Проверить обновления",
-      "available": {
-        "title": "Доступно обновление",
-        "message": "Доступна новая версия. Хотите загрузить?",
-        "later": "Позже",
-        "download": "Загрузить"
-      },
-      "no_updates": "У вас установлена последняя версия",
-      "error": "Не удалось проверить обновления: {error}"
-    },
     "paths": {
       "game": {
         "title": "Путь к игре",
@@ -63,13 +23,6 @@
         "warning": "Игра не найдена. Попробуйте найти автоматически или укажите путь вручную.",
         "error": "Ошибка: {error}"
       },
-      "backup": {
-        "title": "Папка для бэкапов",
-        "not_set": "Не задана",
-        "default": "По умолчанию",
-        "tooltip": "Выбрать папку",
-        "dialog_title": "Выберите папку для бэкапов"
-      },
       "mods": {
         "title": "Папка для отключенных модов",
         "not_set": "Не задана",
@@ -77,19 +30,6 @@
         "tooltip": "Выбрать папку",
         "dialog_title": "Выберите папку для отключенных модов"
       }
-    },
-    "reset": {
-      "title": "Полный сброс",
-      "subtitle": "Удалит все моды и восстановит оригинальные файлы игры",
-      "button": "Сбросить",
-      "confirmation": {
-        "title": "Подтверждение сброса",
-        "message": "Вы уверены, что хотите выполнить полный сброс?\n\nЭто действие:\n• Удалит все установленные моды\n• Восстановит оригинальные файлы игры\n• Удалит все бэкапы\n\nЭто действие нельзя отменить!",
-        "cancel": "Отмена",
-        "confirm": "Да, сбросить всё"
-      },
-      "success": "Полный сброс выполнен успешно",
-      "error": "Ошибка: {error}"
     }
   },
   "home": {
@@ -104,7 +44,6 @@
       "enabled": "Включенные моды"
     },
     "errors": {
-      "game_launch": "Не удалось запустить игру",
       "add_mod": "Ошибка: {error}"
     }
   },
@@ -125,9 +64,8 @@
       "load": "Ошибка при загрузке существующих модов: {error}",
       "name_exists": "Мод с таким именем уже существует",
       "file_not_found": "Файл не найден",
-      "not_zip": "Выбранный файл не является ZIP архивом",
-      "no_pak_or_marvel": "В ZIP архиве не найден .pak файл или папка Marvel",
-      "unpack_failed": "Ошибка при распаковке: {error}"
+      "update_order": "Ошибка при обновлении порядка загрузки: {error}",
+      "invalid_order": "Неверный порядок загрузки"
     },
     "dialogs": {
       "duplicate": {
@@ -135,99 +73,37 @@
         "message": "Мод с именем \"{name}\" уже установлен. Хотите обновить его?",
         "cancel": "Отмена",
         "update": "Обновить"
+      },
+      "order": {
+        "title": "Изменение порядка загрузки",
+        "message": "Введите новый порядок загрузки (0-999)",
+        "save": "Сохранить",
+        "cancel": "Отмена"
       }
     },
-    "logs": {
-      "add": "Добавлен мод: {name}, персонаж: {character}, включен: {enabled}",
-      "rename": "Мод переименован: {oldName} -> {newName}",
-      "toggle": "Состояние мода {name} изменено на: {enabled}",
-      "tag_add": "Добавлен тег \"{tag}\" к моду {name}",
-      "tag_remove": "Удален тег \"{tag}\" из мода {name}",
-      "nexus_update": {
-        "start": "Начало обновления информации с Nexus Mods",
-        "mod_info": "Мод: {name}",
-        "new_url": "Новый Nexus URL: {url}",
-        "mod_index": "Индекс мода в списке: {index}",
-        "not_found": "Мод не найден в списке",
-        "getting_info": "Получение информации с Nexus Mods...",
-        "received_info": "Полученная информация: {info}",
-        "updated_info": "Обновленная информация:",
-        "version": "- Версия: {version}",
-        "picture_url": "- URL картинки: {url}",
-        "nexus_url": "- Nexus URL: {url}",
-        "success": "Информация успешно обновлена и сохранена"
-      }
+    "tooltips": {
+      "add_tag": "Добавить тег",
+      "check_updates": "Проверить обновления",
+      "disable": "Отключить мод",
+      "enable": "Включить мод",
+      "delete": "Удалить мод",
+      "order_up": "Переместить выше",
+      "order_down": "Переместить ниже",
+      "current_order": "Текущий порядок загрузки: {order}"
+    },
+    "notifications": {
+      "no_updates": "Обновлений не найдено"
     }
   },
   "dialogs": {
-    "components": {
-      "title": "Требуется загрузка компонентов",
-      "message": "Для работы приложения необходимо загрузить дополнительные компоненты (~40 МБ). Разрешить загрузку?",
-      "cancel": "Отмена",
-      "download": "Загрузить"
-    },
     "error": {
       "title": "Ошибка",
-      "download_failed": "Не удалось загрузить компоненты: {error}",
-      "close": "Закрыть",
-      "components_not_found": "Не удалось найти необходимые компоненты: {error}",
-      "unpacking_failed": "Не удалось распаковать файлы: {error}",
       "general": "Произошла ошибка: {error}"
     },
     "game_path": {
       "title": "Путь к игре не найден",
       "message": "Пожалуйста, укажите путь к игре в настройках.",
       "go_to_settings": "Перейти к настройкам"
-    },
-    "unpacking": {
-      "title": "Требуется распаковка файлов",
-      "message": "Перед началом работы нужно распаковать файлы игры. Это займёт около ~1ч времени. Готовы продолжить?",
-      "cancel": "Отмена",
-      "continue": "Продолжить",
-      "warning": {
-        "title": "Внимание",
-        "message": "Процесс распаковки займет длительное время.\n\nПожалуйста, не закрывайте приложение и не выключайте компьютер до завершения процесса.\n\nПродолжить?",
-        "cancel": "Отмена",
-        "continue": "Продолжить"
-      }
-    }
-  },
-  "mod_manager": {
-    "errors": {
-      "invalid_mod_structure": "Неверная структура мода: папка Marvel не найдена",
-      "backup_failed": "Не удалось создать бэкап файла: {error}",
-      "restore_failed": "Не удалось восстановить файл: {error}",
-      "reset_failed": "Ошибка при полном сбросе: {error}"
-    },
-    "logs": {
-      "backup_create": "Создаем бэкап для файла: {path}",
-      "relative_path": "Относительный путь: {path}",
-      "backup_created": "Бэкап создан: {path}",
-      "relative_path_saved": "Сохранен относительный путь: {path}",
-      "backup_search": "Ищем бэкап для файла: {path}",
-      "mod_backup_dir": "Директория бэкапов мода: {path}",
-      "file_relative_path": "Относительный путь файла: {path}",
-      "backup_not_found": "Бэкапы не найдены для мода: {name}",
-      "removing_mod_file": "Удаляем файл, созданный модом: {path}",
-      "comparing_paths": "Сравниваем пути:",
-      "saved_path": "- Сохраненный:   {path}",
-      "target_path": "- Целевой:       {path}",
-      "backup_found": "Найден подходящий бэкап: {path}",
-      "restoring_file": "Восстанавливаем файл: {path}",
-      "file_restored": "Файл успешно восстановлен из бэкапа: {path}",
-      "paths_mismatch": "Пути не совпадают, продолжаем поиск...",
-      "no_backup_found": "Подходящий бэкап не найден для файла: {path}",
-      "reset_start": "Начинаем полный сброс...",
-      "disable_mod": "Отключаем мод: {name}",
-      "mod_removed": "Удален мод: {name}",
-      "backups_removed": "Удалены все бэкапы",
-      "reset_complete": "Полный сброс выполнен успешно"
-    }
-  },
-  "nexus_mods": {
-    "errors": {
-      "invalid_url": "Неверная ссылка на мод",
-      "get_info_failed": "Ошибка получения информации о моде: {code}"
     }
   },
   "platform": {
@@ -241,43 +117,11 @@
       "game_path_not_found": "Путь к игре не найден"
     }
   },
-  "quickbms": {
+  "nexus_mods": {
     "errors": {
-      "unpack_file_not_found": "Файл для распаковки не найден: {path}",
-      "quickbms_not_found": "QuickBMS не найден: {path}",
-      "script_not_found": "Скрипт распаковки не найден: {path}",
-      "unpack_failed": "Ошибка при распаковке файла. Код возврата: {code}",
-      "unpack_error": "Ошибка при распаковке: {error}",
-      "backup_failed": "Ошибка при создании бэкапа: {error}",
-      "temp_cleanup_failed": "Ошибка при очистке временных файлов: {error}"
-    },
-    "logs": {
-      "unpack_start": "Начинаем распаковку файла: {path}",
-      "unpack_path": "Путь для распаковки: {path}",
-      "preparing": "Подготовка к распаковке...",
-      "extracting": "Идет распаковка...",
-      "unpacking_file": "Распаковка: {file}",
-      "create_mod_dir": "Создаем директорию для мода: {path}",
-      "checking_components": "Проверяем компоненты QuickBMS:",
-      "quickbms_exe": "- QuickBMS exe: {path}",
-      "bms_script": "- BMS скрипт: {path}",
-      "start_process": "Запускаем процесс распаковки...",
-      "executing_command": "Выполняем команду: {command}",
-      "output": "QuickBMS: {line}",
-      "error": "Ошибка QuickBMS: {line}",
-      "unpack_complete": "Распаковка завершена",
-      "cleaning_temp": "Очистка временных файлов...",
-      "temp_cleaned": "Временные файлы удалены",
-      "checking_quickbms": "Проверяем наличие QuickBMS в: {path}",
-      "checking_script": "Проверяем наличие скрипта в: {path}",
-      "backup_copy": "Копирование файла в бэкап: {path}",
-      "removing_original": "Удаление оригинального файла",
-      "moved_to_backup": "Файл перемещен в бэкап: {path}"
+      "invalid_url": "Неверная ссылка на мод",
+      "get_info_failed": "Ошибка получения информации о моде: {code}"
     }
-  },
-  "unpacking_status": {
-    "start": "Начало распаковки {file}...",
-    "complete": "Распаковка завершена"
   },
   "mod_list_item": {
     "dialogs": {
@@ -288,7 +132,9 @@
         "nexus_url_hint": "https://www.nexusmods.com/marvelrivals/mods/...",
         "update_info": "Обновить информацию",
         "cancel": "Отмена",
-        "save": "Сохранить"
+        "save": "Сохранить",
+        "order_label": "Порядок загрузки",
+        "file_name": "Имя файла: {name}"
       },
       "add_tag": {
         "title": "Добавить тег",
@@ -333,46 +179,6 @@
     "errors": {
       "toggle": "Ошибка: {error}"
     }
-  },
-  "unpacking_progress": {
-    "title": "Распаковка файлов",
-    "message": "Идет распаковка файлов игры. Это может занять около часа.\nПожалуйста, не закрывайте приложение.",
-    "default_status": "Подготовка к распаковке..."
-  },
-  "repak": {
-    "errors": {
-      "unpack_file_not_found": "Файл для распаковки не найден: {path}",
-      "repak_not_found": "Repak не найден: {path}",
-      "unpack_failed": "Ошибка при распаковке файла. Код возврата: {code}",
-      "unpack_error": "Ошибка при распаковке: {error}"
-    },
-    "logs": {
-      "unpack_start": "Начинаем распаковку файла: {path}",
-      "unpack_path": "Путь для распаковки: {path}",
-      "preparing": "Подготовка к распаковке...",
-      "checking_components": "Проверяем компоненты Repak:",
-      "checking_repak": "Проверяем наличие Repak: {path}",
-      "output": "Вывод Repak: {line}",
-      "error": "Ошибка Repak: {line}",
-      "unpacking_progress": "Прогресс распаковки: {progress}",
-      "unpack_complete": "Распаковка завершена"
-    }
-  },
-  "delete_dialog": {
-    "title": "Удаление мода",
-    "message": "Вы уверены, что хотите удалить мод \"{name}\"?",
-    "cancel": "Отмена",
-    "confirm": "Удалить"
-  },
-  "delete_errors": {
-    "failed": "Не удалось удалить мод: {error}",
-    "in_use": "Невозможно удалить мод, так как он используется",
-    "not_found": "Мод не найден"
-  },
-  "delete_logs": {
-    "start": "Удаление мода: {name}",
-    "success": "Мод успешно удален: {name}",
-    "removing_files": "Удаление файлов мода..."
   },
   "presets": {
     "title": "Пресеты модов",

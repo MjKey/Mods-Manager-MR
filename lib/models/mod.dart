@@ -1,5 +1,7 @@
 class Mod {
-  final String name;
+  final String name;        // Отображаемое имя (можно менять)
+  final String fileName;    // Базовое имя файла (неизменяемое)
+  final int order;         // Порядок загрузки
   final String? description;
   final String pakPath;
   final String? unpackedPath;
@@ -14,6 +16,8 @@ class Mod {
 
   Mod({
     required this.name,
+    required this.fileName,
+    this.order = 0,
     this.description,
     required this.pakPath,
     this.unpackedPath,
@@ -27,8 +31,12 @@ class Mod {
     this.tags = const [],
   });
 
+  String get baseFileName => fileName.replaceFirst(RegExp(r'^\d{3}_'), '');
+
   Mod copyWith({
     String? name,
+    String? fileName,
+    int? order,
     String? description,
     String? pakPath,
     String? unpackedPath,
@@ -43,6 +51,8 @@ class Mod {
   }) {
     return Mod(
       name: name ?? this.name,
+      fileName: fileName ?? this.fileName,
+      order: order ?? this.order,
       description: description ?? this.description,
       pakPath: pakPath ?? this.pakPath,
       unpackedPath: unpackedPath ?? this.unpackedPath,
@@ -60,6 +70,8 @@ class Mod {
   Map<String, dynamic> toJson() {
     return {
       'name': name,
+      'fileName': fileName,
+      'order': order,
       'description': description,
       'pakPath': pakPath,
       'unpackedPath': unpackedPath,
@@ -67,12 +79,18 @@ class Mod {
       'version': version,
       'character': character,
       'isEnabled': isEnabled,
+      'nexusUrl': nexusUrl,
+      'nexusImageUrl': nexusImageUrl,
+      'lastUpdateCheck': lastUpdateCheck?.toIso8601String(),
+      'tags': tags,
     };
   }
 
   factory Mod.fromJson(Map<String, dynamic> json) {
     return Mod(
       name: json['name'] as String,
+      fileName: json['fileName'] as String? ?? json['name'] as String,
+      order: json['order'] as int? ?? 0,
       description: json['description'] as String?,
       pakPath: json['pakPath'] as String,
       unpackedPath: json['unpackedPath'] as String?,
@@ -80,6 +98,12 @@ class Mod {
       version: json['version'] as String?,
       character: json['character'] as String?,
       isEnabled: json['isEnabled'] as bool,
+      nexusUrl: json['nexusUrl'] as String?,
+      nexusImageUrl: json['nexusImageUrl'] as String?,
+      lastUpdateCheck: json['lastUpdateCheck'] != null 
+          ? DateTime.parse(json['lastUpdateCheck'] as String)
+          : null,
+      tags: (json['tags'] as List<dynamic>?)?.cast<String>() ?? [],
     );
   }
 } 

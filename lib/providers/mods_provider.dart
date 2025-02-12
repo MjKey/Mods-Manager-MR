@@ -10,6 +10,7 @@ import '../services/settings_service.dart';
 import '../services/nexus_mods_service.dart';
 import '../services/localization_service.dart';
 import '../services/archive_service.dart';
+import 'dart:math' show max;
 
 class ModsProvider with ChangeNotifier {
   final List<Mod> _mods = [];
@@ -17,9 +18,15 @@ class ModsProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   final LocalizationService _localization;
 
-  List<Mod> get mods => _mods;
-  List<Mod> get enabledMods => _mods.where((mod) => mod.isEnabled).toList();
-  List<Mod> get disabledMods => _mods.where((mod) => !mod.isEnabled).toList();
+  List<Mod> get mods => List<Mod>.from(_mods)..sort((a, b) => a.order.compareTo(b.order));
+  List<Mod> get enabledMods => _mods
+      .where((mod) => mod.isEnabled)
+      .toList()
+      ..sort((a, b) => a.order.compareTo(b.order));
+  List<Mod> get disabledMods => _mods
+      .where((mod) => !mod.isEnabled)
+      .toList()
+      ..sort((a, b) => a.order.compareTo(b.order));
 
   ModsProvider() : _localization = LocalizationService() {
     loadMods();
@@ -51,14 +58,21 @@ class ModsProvider with ChangeNotifier {
 
       await for (final entry in Directory(modsDir).list()) {
         if (entry is File && entry.path.toLowerCase().endsWith('.pak')) {
-          final modName = path.basenameWithoutExtension(entry.path);
+          final fileName = path.basename(entry.path);
+          final modName = path.basenameWithoutExtension(entry.path)
+              .replaceFirst(RegExp(r'^\d{3}_'), ''); // Убираем префикс с order из имени мода
           final character = await CharacterService.detectCharacterFromModPath(entry.path);
+          
+          // Получаем order из имени файла или используем порядковый номер
+          final order = ModManagerService.extractOrderFromFileName(fileName) ?? loadedMods.length;
           
           // Получаем сохраненное состояние для этого мода
           final savedModState = savedState[modName] as Map<String, dynamic>?;
           
           final mod = Mod(
             name: modName,
+            fileName: fileName,
+            order: order,
             description: savedModState?['description'] as String? ?? _localization.translate('mods.default.description'),
             pakPath: entry.path,
             unpackedPath: entry.path,
@@ -84,14 +98,20 @@ class ModsProvider with ChangeNotifier {
       final disabledModsDir = await SettingsService.getModsPath();
       await for (final entry in Directory(disabledModsDir).list()) {
         if (entry is File && entry.path.toLowerCase().endsWith('.pak')) {
-          final modName = path.basenameWithoutExtension(entry.path);
+          final fileName = path.basename(entry.path);
+          final modName = path.basenameWithoutExtension(entry.path)
+              .replaceFirst(RegExp(r'^\d{3}_'), '');
           final character = await CharacterService.detectCharacterFromModPath(entry.path);
+          
+          final order = ModManagerService.extractOrderFromFileName(fileName) ?? loadedMods.length;
           
           // Получаем сохраненное состояние для этого мода
           final savedModState = savedState[modName] as Map<String, dynamic>?;
           
           final mod = Mod(
             name: modName,
+            fileName: fileName,
+            order: order,
             description: savedModState?['description'] as String? ?? _localization.translate('mods.default.description'),
             pakPath: entry.path,
             unpackedPath: entry.path,
@@ -113,6 +133,8 @@ class ModsProvider with ChangeNotifier {
         }
       }
 
+      // Сортируем моды по order перед добавлением в _mods
+      loadedMods.sort((a, b) => a.order.compareTo(b.order));
       _mods.clear();
       _mods.addAll(loadedMods);
       
@@ -127,45 +149,53 @@ class ModsProvider with ChangeNotifier {
 
   Future<bool> addMod(String filePath) async {
     try {
-      String? pakPath = filePath;
-      final extension = path.extension(filePath).toLowerCase();
-      
-      // Если это архив, извлекаем из него .pak файл
-      if (extension == '.zip') {
-        pakPath = await ArchiveService.extractPakFromArchive(filePath);
-        if (pakPath == null) {
-          return false;
-        }
-      }
-      
-      // Проверяем, что это .pak файл
-      if (path.extension(pakPath).toLowerCase() != '.pak') {
-        return false;
-      }
-
+      // Получаем путь к игре
       final gamePath = await GamePathsService.getGamePath();
-      if (gamePath == null) return false;
-
-      final modsDir = path.join(gamePath, 'MarvelGame', 'Marvel', 'Content', 'Paks', '~mods');
-      if (!await Directory(modsDir).exists()) {
-        await Directory(modsDir).create(recursive: true);
+      if (gamePath == null) {
+        throw Exception(_localization.translate('mods.errors.game_path_not_found'));
       }
 
-      final modName = path.basenameWithoutExtension(pakPath);
-      final destPath = path.join(modsDir, '$modName.pak');
+      // Определяем путь к файлу мода
+      String pakPath = filePath;
+      if (path.extension(filePath).toLowerCase() == '.zip') {
+        pakPath = await ArchiveService.extractPakFromArchive(filePath) ?? filePath;
+      }
 
-      // Проверяем, существует ли уже мод с таким именем
+      // Получаем имя мода из имени файла
+      final fileName = path.basename(pakPath);
+      final modName = path.basenameWithoutExtension(fileName);
+
+      // Определяем путь назначения
+      final destPath = path.join(
+        gamePath,
+        'MarvelGame',
+        'Marvel',
+        'Content',
+        'Paks',
+        '~mods',
+        fileName,
+      );
+
+      // Проверяем существование мода по базовому имени файла
+      final baseFileName = ModManagerService.extractBaseFileName(fileName);
       final existingMod = _mods.firstWhere(
-        (mod) => mod.name == modName,
+        (mod) => mod.baseFileName == baseFileName,
         orElse: () => Mod(
-          name: '',
+          name: modName,
+          fileName: fileName,
+          order: 0,
           pakPath: '',
           installDate: DateTime.now(),
           isEnabled: false,
         ),
       );
 
-      if (existingMod.name.isNotEmpty) {
+      // Определяем order для нового мода
+      final nextOrder = _mods.isEmpty ? 0 : _mods.map((m) => m.order).reduce(max) + 1;
+
+      if (existingMod.pakPath.isNotEmpty) {
+        // Если мод существует, сохраняем его order для обновления
+        final existingOrder = existingMod.order;
         // Показываем диалог подтверждения обновления
         final context = GamePathsService.navigatorKey.currentContext;
         if (context == null) return false;
@@ -192,76 +222,94 @@ class ModsProvider with ChangeNotifier {
         );
 
         if (shouldUpdate != true) {
-          // Если это был временный файл из архива, удаляем его
           if (pakPath != filePath) {
             await ArchiveService.cleanupTempFiles(pakPath);
           }
           return false;
         }
 
-        // Удаляем старый мод перед обновлением
         await removeMod(existingMod);
+        
+        // Копируем мод в папку ~mods
+        await File(pakPath).copy(destPath);
+
+        // Получаем сохраненное состояние
+        final savedState = await SettingsService.loadModsState();
+        final savedModState = savedState[modName] as Map<String, dynamic>?;
+
+        // Определяем персонажа
+        final character = await CharacterService.detectCharacterFromModPath(destPath);
+
+        // Используем existingOrder для обновляемого мода
+        final mod = Mod(
+          name: modName,
+          fileName: fileName,
+          order: existingOrder, // Используем сохраненный order существующего мода
+          description: savedModState?['description'] as String? ?? _localization.translate('mods.default.description'),
+          pakPath: destPath,
+          unpackedPath: destPath,
+          installDate: DateTime.now(),
+          version: savedModState?['version'] as String? ?? '1.0',
+          character: character,
+          isEnabled: true,
+          nexusUrl: savedModState?['nexusUrl'] as String?,
+          nexusImageUrl: savedModState?['nexusImageUrl'] as String?,
+          lastUpdateCheck: savedModState?['lastUpdateCheck'] != null 
+              ? DateTime.parse(savedModState!['lastUpdateCheck'] as String)
+              : null,
+          tags: (savedModState?['tags'] as List<dynamic>?)?.cast<String>() ?? [],
+        );
+
+        _mods.add(mod);
+      } else {
+        // Для нового мода
+        await File(pakPath).copy(destPath);
+        
+        // Получаем сохраненное состояние
+        final savedState = await SettingsService.loadModsState();
+        final savedModState = savedState[modName] as Map<String, dynamic>?;
+        
+        final mod = Mod(
+          name: modName,
+          fileName: fileName,
+          order: nextOrder,
+          description: savedModState?['description'] as String? ?? _localization.translate('mods.default.description'),
+          pakPath: destPath,
+          unpackedPath: destPath,
+          installDate: DateTime.now(),
+          version: savedModState?['version'] as String? ?? '1.0',
+          character: await CharacterService.detectCharacterFromModPath(destPath),
+          isEnabled: true,
+          nexusUrl: savedModState?['nexusUrl'] as String?,
+          nexusImageUrl: savedModState?['nexusImageUrl'] as String?,
+          lastUpdateCheck: savedModState?['lastUpdateCheck'] != null 
+              ? DateTime.parse(savedModState!['lastUpdateCheck'] as String)
+              : null,
+          tags: (savedModState?['tags'] as List<dynamic>?)?.cast<String>() ?? [],
+        );
+
+        _mods.add(mod);
       }
 
-      // Копируем мод в папку ~mods
-      await File(pakPath).copy(destPath);
-
-      // Если это был временный файл из архива, удаляем его
-      if (pakPath != filePath) {
-        await ArchiveService.cleanupTempFiles(pakPath);
-      }
-
-      // Получаем сохраненное состояние
-      final savedState = await SettingsService.loadModsState();
-      final savedModState = savedState[modName] as Map<String, dynamic>?;
-
-      // Определяем персонажа
-      final character = await CharacterService.detectCharacterFromModPath(destPath);
-
-      // Добавляем мод в список
-      final mod = Mod(
-        name: modName,
-        description: savedModState?['description'] as String? ?? _localization.translate('mods.default.description'),
-        pakPath: destPath,
-        unpackedPath: destPath,
-        installDate: DateTime.now(),
-        version: savedModState?['version'] as String? ?? '1.0',
-        character: character,
-        isEnabled: true,
-        tags: (savedModState?['tags'] as List<dynamic>?)?.cast<String>() ?? [],
-      );
-
-      _mods.add(mod);
       await SettingsService.saveModsState(_mods);
-
       notifyListeners();
       return true;
     } catch (e) {
-      debugPrint('Ошибка при добавлении мода: $e');
-      return false;
+      debugPrint('Error adding mod: $e');
+      rethrow;
     }
   }
 
   Future<void> renameMod(Mod mod, String newName) async {
     try {
-      final index = _mods.indexOf(mod);
+      final index = _mods.indexWhere((m) => m.name == mod.name);
       if (index == -1) return;
 
-      // Проверяем, не существует ли уже мод с таким именем
-      if (_mods.any((m) => m.name == newName && m != mod)) {
-        throw Exception(_localization.translate('mods.errors.name_exists'));
-      }
-
-      // Обновляем мод в списке
+      // Обновляем только отображаемое имя, оставляем имя файла без изменений
       _mods[index] = mod.copyWith(name: newName);
       
-      // Сохраняем состояние после изменения
       await SettingsService.saveModsState(_mods);
       notifyListeners();
-      debugPrint(_localization.translate('mods.logs.rename', {
-        'oldName': mod.name,
-        'newName': newName
-      }));
     } catch (e) {
       throw Exception(_localization.translate('mods.errors.rename', {'error': e.toString()}));
     }
@@ -341,7 +389,7 @@ class ModsProvider with ChangeNotifier {
           }
 
           // Включаем мод
-          await ModManagerService.enableMod(mod.pakPath, gamePath);
+          await ModManagerService.enableMod(mod.pakPath, gamePath, mod.order);
           
           // Перемещаем файл в папку ~mods
           final modsDir = path.join(gamePath, 'MarvelGame', 'Marvel', 'Content', 'Paks', '~mods');
@@ -542,5 +590,42 @@ class ModsProvider with ChangeNotifier {
     final lastUpdate = DateTime.fromMillisecondsSinceEpoch(modInfo['updated_timestamp'] * 1000);
     
     return mod.lastUpdateCheck != null && lastUpdate.isAfter(mod.lastUpdateCheck!);
+  }
+
+  Future<void> updateModOrder(Mod mod, int newOrder) async {
+    try {
+      // Гарантируем, что order не меньше 0
+      final safeOrder = newOrder.clamp(0, 999);
+      
+      final index = _mods.indexWhere((m) => m.fileName == mod.fileName);
+      if (index == -1) return;
+
+      final gamePath = await GamePathsService.getGamePath();
+      if (gamePath == null) return;
+
+      // Если мод включен, переименовываем файл с новым порядком
+      if (mod.isEnabled) {
+        final oldPath = mod.pakPath;
+        final newFileName = ModManagerService.generateFileName(mod.baseFileName, safeOrder);
+        final newPath = path.join(path.dirname(oldPath), newFileName);
+        
+        final file = File(oldPath);
+        if (await file.exists()) {
+          await file.rename(newPath);
+        }
+      }
+
+      // Обновляем мод в списке
+      _mods[index] = mod.copyWith(
+        order: safeOrder,
+        pakPath: mod.isEnabled ? path.join(path.dirname(mod.pakPath), 
+            ModManagerService.generateFileName(mod.baseFileName, safeOrder)) : mod.pakPath,
+      );
+
+      await SettingsService.saveModsState(_mods);
+      notifyListeners();
+    } catch (e) {
+      throw Exception(_localization.translate('mods.errors.update_order', {'error': e.toString()}));
+    }
   }
 } 

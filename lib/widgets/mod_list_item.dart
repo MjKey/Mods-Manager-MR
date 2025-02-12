@@ -20,9 +20,10 @@ class ModListItem extends StatelessWidget {
 
   Future<void> _showEditDialog(BuildContext context) async {
     final nameController = TextEditingController(text: mod.name);
+    final orderController = TextEditingController(text: mod.order.toString());
     final nexusUrlController = TextEditingController(text: mod.nexusUrl ?? '');
 
-    final result = await showDialog<Map<String, String>>(
+    final result = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(_localization.translate('mod_list_item.dialogs.edit.title')),
@@ -37,6 +38,14 @@ class ModListItem extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
+            TextField(
+              controller: orderController,
+              decoration: InputDecoration(
+                labelText: _localization.translate('mod_list_item.dialogs.edit.order_label'),
+                icon: const Icon(Icons.sort),
+              ),
+              keyboardType: TextInputType.number,
+            ),
             TextField(
               controller: nexusUrlController,
               decoration: InputDecoration(
@@ -76,9 +85,11 @@ class ModListItem extends StatelessWidget {
           ),
           TextButton(
             onPressed: () {
+              final newOrder = int.tryParse(orderController.text) ?? mod.order;
               Navigator.pop(context, {
-                'name': nameController.text,
-                'nexusUrl': nexusUrlController.text,
+                'name': nameController.text.trim(),
+                'order': newOrder,
+                'nexusUrl': nexusUrlController.text.trim(),
               });
             },
             child: Text(_localization.translate('mod_list_item.dialogs.edit.save')),
@@ -89,7 +100,12 @@ class ModListItem extends StatelessWidget {
 
     if (result != null) {
       if (result['name'] != mod.name) {
-        onRename(result['name']!);
+        await Provider.of<ModsProvider>(context, listen: false)
+            .renameMod(mod, result['name']);
+      }
+      if (result['order'] != mod.order) {
+        await Provider.of<ModsProvider>(context, listen: false)
+            .updateModOrder(mod, result['order']);
       }
       if (result['nexusUrl'] != mod.nexusUrl && result['nexusUrl']!.isNotEmpty) {
         await Provider.of<ModsProvider>(context, listen: false)
@@ -195,27 +211,70 @@ class ModListItem extends StatelessWidget {
         ),
       ),
       child: ListTile(
-        leading: ClipRRect(
-          borderRadius: BorderRadius.circular(4),
-          child: mod.nexusImageUrl != null
-              ? Image.network(
-                  mod.nexusImageUrl!,
-                  width: 50,
-                  height: 50,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Image.asset(
-                    'assets/img/cover.png',
-                    width: 50,
-                    height: 50,
-                    fit: BoxFit.cover,
+        leading: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '${mod.order}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
                   ),
-                )
-              : Image.asset(
-                  'assets/img/cover.png',
-                  width: 50,
-                  height: 50,
-                  fit: BoxFit.cover,
                 ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      iconSize: 16,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      icon: const Icon(Icons.arrow_upward),
+                      onPressed: () {
+                        Provider.of<ModsProvider>(context, listen: false)
+                            .updateModOrder(mod, mod.order - 1);
+                      },
+                    ),
+                    IconButton(
+                      iconSize: 16,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      icon: const Icon(Icons.arrow_downward),
+                      onPressed: () {
+                        Provider.of<ModsProvider>(context, listen: false)
+                            .updateModOrder(mod, mod.order + 1);
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(width: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: mod.nexusImageUrl != null
+                  ? Image.network(
+                      mod.nexusImageUrl!,
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Image.asset(
+                        'assets/img/cover.png',
+                        width: 50,
+                        height: 50,
+                        fit: BoxFit.cover,
+                      ),
+                    )
+                  : Image.asset(
+                      'assets/img/cover.png',
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
+                    ),
+            ),
+          ],
         ),
         title: Row(
           children: [
@@ -305,16 +364,16 @@ class ModListItem extends StatelessWidget {
                   final confirmed = await showDialog<bool>(
                     context: context,
                     builder: (context) => AlertDialog(
-                      title: Text(_localization.translate('delete_dialog.title')),
-                      content: Text(_localization.translate('delete_dialog.message', {'name': mod.name})),
+                      title: Text(_localization.translate('mod_list_item.dialogs.delete.title')),
+                      content: Text(_localization.translate('mod_list_item.dialogs.delete.message', {'name': mod.name})),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(context, false),
-                          child: Text(_localization.translate('delete_dialog.cancel')),
+                          child: Text(_localization.translate('mod_list_item.dialogs.delete.cancel')),
                         ),
                         TextButton(
                           onPressed: () => Navigator.pop(context, true),
-                          child: Text(_localization.translate('delete_dialog.confirm')),
+                          child: Text(_localization.translate('mod_list_item.dialogs.delete.confirm')),
                           style: TextButton.styleFrom(foregroundColor: Colors.red),
                         ),
                       ],

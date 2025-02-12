@@ -30,12 +30,10 @@ class PresetsProvider with ChangeNotifier {
 
   Future<void> savePreset(String name, String? description, List<String> enabledMods) async {
     try {
-      // Проверяем, не пустое ли имя
       if (name.trim().isEmpty) {
         throw Exception(_localization.translate('presets.errors.empty_name'));
       }
 
-      // Проверяем, нет ли уже пресета с таким именем
       if (_presets.any((preset) => preset.name == name)) {
         throw Exception(_localization.translate('presets.errors.name_exists'));
       }
@@ -48,7 +46,7 @@ class PresetsProvider with ChangeNotifier {
       );
 
       await PresetsService.savePreset(preset);
-      _presets.insert(0, preset); // Добавляем в начало списка
+      _presets.add(preset);
       notifyListeners();
     } catch (e) {
       debugPrint(_localization.translate('presets.errors.save', {'error': e.toString()}));
@@ -81,12 +79,10 @@ class PresetsProvider with ChangeNotifier {
           (m) => m.name == modName,
           orElse: () => Mod(
             name: modName,
-            description: '',
+            fileName: modName,
             pakPath: '',
-            unpackedPath: '',
             installDate: DateTime.now(),
-            version: '',
-            isEnabled: false
+            isEnabled: false,
           ),
         );
         if (!mod.isEnabled) {
@@ -94,7 +90,7 @@ class PresetsProvider with ChangeNotifier {
         }
       }
     } catch (e) {
-      debugPrint(_localization.translate('presets.errors.load', {'error': e.toString()}));
+      debugPrint(_localization.translate('presets.errors.apply', {'error': e.toString()}));
       rethrow;
     }
   }
