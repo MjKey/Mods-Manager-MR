@@ -4,6 +4,7 @@ import '../services/localization_service.dart';
 
 class NexusModsService {
   static const String _baseUrl = 'https://api.nexusmods.com/v1';
+  // hard coded api key =bad uwu :(
   static const String _apiKey = 'LdEvSqvTfKatcESMCj3jRuPGX43UuBac8V9qD3BJUPil/y03PQ==--cQ8QtdwiQk6hCjR3--KqPLEmtcF8ivhivqSzBHXw==';
   static final LocalizationService _localization = LocalizationService();
 

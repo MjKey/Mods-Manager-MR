@@ -45,7 +45,6 @@ class MyApp extends StatelessWidget {
                 primary: Colors.blue,
                 secondary: Colors.blueAccent,
                 surface: Colors.grey[900]!,
-                background: Colors.black87,
               ),
               cardTheme: CardTheme(
                 color: Colors.grey[850],

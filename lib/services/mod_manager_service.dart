@@ -31,8 +31,9 @@ class ModManagerService {
     if (!await Directory(modsDir).exists()) {
       await Directory(modsDir).create(recursive: true);
     }
-
+    // problem TODO
     final baseFileName = path.basename(modPath);
+    print(baseFileName);
     final newFileName = generateFileName(extractBaseFileName(baseFileName), order);
     final targetPath = path.join(modsDir, newFileName);
 
@@ -60,7 +61,6 @@ class ModManagerService {
   static Future<List<String>> getAffectedFiles(String modPath, String gamePath) async {
     final modsDir = path.join(gamePath, 'MarvelGame', 'Marvel', 'Content', 'Paks', '~mods');
     final targetPath = path.join(modsDir, path.basename(modPath));
-    
     if (await File(targetPath).exists()) {
       return [targetPath];
     }

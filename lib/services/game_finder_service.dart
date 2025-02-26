@@ -52,11 +52,11 @@ class GameFinderService {
         HKEY_CURRENT_USER,
         subKey,
         0,
-        REG_SAM_FLAGS.KEY_READ,
+        KEY_READ,
         phkResult,
       );
 
-      if (result == WIN32_ERROR.ERROR_SUCCESS) {
+      if (result == ERROR_SUCCESS) {
         try {
           final bufferSize = calloc<DWORD>()..value = MAX_PATH;
           final buffer = wsalloc(MAX_PATH);
@@ -71,7 +71,7 @@ class GameFinderService {
             bufferSize,
           );
 
-          if (queryResult == WIN32_ERROR.ERROR_SUCCESS) {
+          if (queryResult == ERROR_SUCCESS) {
             final steamPath = buffer.toDartString();
             print('Найден путь к Steam в реестре: $steamPath');
             free(buffer);
