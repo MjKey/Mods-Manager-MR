@@ -16,7 +16,7 @@ class ModListPanel extends StatelessWidget {
   static final LocalizationService _localization = LocalizationService();
 
   const ModListPanel({
-    Key? key,
+    super.key,
     required this.title,
     required this.mods,
     required this.onSearch,
@@ -24,7 +24,7 @@ class ModListPanel extends StatelessWidget {
     required this.onRename,
     required this.isEnabledList,
     this.searchQuery,
-  }) : super(key: key);
+  });
 
   Future<void> _handleToggle(BuildContext context, Mod mod) async {
     try {
@@ -48,8 +48,8 @@ class ModListPanel extends StatelessWidget {
           ..sort((a, b) => a.order.compareTo(b.order));
 
         return DragTarget<Mod>(
-          onWillAccept: (mod) => mod?.isEnabled != isEnabledList,
-          onAccept: (mod) => _handleToggle(context, mod),
+          onWillAcceptWithDetails: (details) => details.data.isEnabled != isEnabledList,
+          onAcceptWithDetails: (mod) => _handleToggle(context, mod as Mod),
           builder: (context, candidateData, rejectedData) {
             return Card(
               margin: const EdgeInsets.all(8.0),
@@ -146,4 +146,4 @@ class ModListPanel extends StatelessWidget {
       },
     );
   }
-} 
+}

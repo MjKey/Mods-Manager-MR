@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../models/mod.dart';
 import '../services/mod_manager_service.dart';
@@ -212,10 +211,10 @@ class ModsProvider with ChangeNotifier {
               ),
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: Text(_localization.translate('mods.dialogs.duplicate.update')),
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.blue,
                 ),
+                child: Text(_localization.translate('mods.dialogs.duplicate.update')),
               ),
             ],
           ),
@@ -391,16 +390,16 @@ class ModsProvider with ChangeNotifier {
           // Включаем мод
           await ModManagerService.enableMod(mod.pakPath, gamePath, mod.order);
           
-          // Перемещаем файл в папку ~mods
+          // // Перемещаем файл в папку ~mods
           final modsDir = path.join(gamePath, 'MarvelGame', 'Marvel', 'Content', 'Paks', '~mods');
           final fileName = path.basename(mod.pakPath);
           final newPath = path.join(modsDir, fileName);
-          
-          final sourceFile = File(mod.pakPath);
-          if (await sourceFile.exists()) {
-            await sourceFile.copy(newPath);
-            await sourceFile.delete();
-          }
+          //
+          // final sourceFile = File(mod.pakPath);
+          // if (await sourceFile.exists()) {
+          //   await sourceFile.copy(newPath);
+          //   await sourceFile.delete();
+          // }
 
           _mods[index] = mod.copyWith(
             isEnabled: true,

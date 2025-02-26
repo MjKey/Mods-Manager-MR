@@ -7,7 +7,7 @@ import 'package:intl/intl.dart';
 class PresetLoadDialog extends StatelessWidget {
   final _localization = LocalizationService();
 
-  PresetLoadDialog({Key? key}) : super(key: key);
+  PresetLoadDialog({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -62,8 +62,8 @@ class PresetLoadDialog extends StatelessWidget {
                             ),
                             TextButton(
                               onPressed: () => Navigator.pop(context, true),
-                              child: Text(_localization.translate('presets.confirm.delete.confirm')),
                               style: TextButton.styleFrom(foregroundColor: Colors.red),
+                              child: Text(_localization.translate('presets.confirm.delete.confirm')),
                             ),
                           ],
                         ),

@@ -5,9 +5,9 @@ class PresetSaveDialog extends StatefulWidget {
   final List<String> enabledMods;
 
   const PresetSaveDialog({
-    Key? key,
+    super.key,
     required this.enabledMods,
-  }) : super(key: key);
+  });
 
   @override
   State<PresetSaveDialog> createState() => _PresetSaveDialogState();
