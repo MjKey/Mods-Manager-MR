@@ -48,8 +48,8 @@ class ModListPanel extends StatelessWidget {
           ..sort((a, b) => a.order.compareTo(b.order));
 
         return DragTarget<Mod>(
-          onWillAccept: (mod) => mod?.isEnabled != isEnabledList,
-          onAccept: (mod) => _handleToggle(context, mod),
+          onWillAcceptWithDetails: (mod) => mod.isEnabled != isEnabledList,
+          onAcceptWithDetails: (mod) => _handleToggle(context, mod as Mod),
           builder: (context, candidateData, rejectedData) {
             return Card(
               margin: const EdgeInsets.all(8.0),
@@ -146,4 +146,8 @@ class ModListPanel extends StatelessWidget {
       },
     );
   }
-} 
+}
+
+extension on DragTargetDetails<Mod> {
+  get isEnabled => null;
+}
