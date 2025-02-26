@@ -1,0 +1,221 @@
+{
+  "app": {
+    "title": "Marvel Rivals Mod Manager",
+    "initialization": "初期化中..."
+  },
+  "game_paths": {
+    "errors": {
+      "get_path": "ゲームパスの取得エラー: {error}",
+      "invalid_path": "無効なゲームパス: Paksフォルダが見つかりません"
+    }
+  },
+  "settings": {
+    "title": "設定",
+    "language": "言語",
+    "paths": {
+      "game": {
+        "title": "ゲームパス",
+        "not_found": "見つかりません",
+        "tooltips": {
+          "auto_find": "自動検索",
+          "manual_select": "手動選択"
+        },
+        "warning": "ゲームが見つかりません。自動検索を試すか、手動でパスを指定してください。",
+        "error": "エラー: {error}"
+      },
+      "mods": {
+        "title": "無効化されたModフォルダ",
+        "not_set": "未設定",
+        "default": "デフォルト",
+        "tooltip": "フォルダを選択",
+        "dialog_title": "無効化されたModフォルダを選択"
+      }
+    }
+  },
+  "home": {
+    "tooltips": {
+      "launch_steam": "Steamで起動",
+      "launch_epic": "Epic Gamesで起動",
+      "add_mod": "Modを追加",
+      "settings": "設定"
+    },
+    "mod_lists": {
+      "disabled": "無効化されたMod",
+      "enabled": "有効化されたMod"
+    },
+    "errors": {
+      "add_mod": "エラー: {error}"
+    }
+  },
+  "mods": {
+    "default": {
+      "description": "Modの説明"
+    },
+    "errors": {
+      "game_path_not_found": "ゲームパスが見つかりません",
+      "mod_conflict": "Mod {modName}との競合。以下のファイルは既に変更されています:\n{files}",
+      "rename": "Modの名前変更エラー: {error}",
+      "toggle": "Modの切り替えエラー: {error}",
+      "remove": "Modの削除エラー: {error}",
+      "tag_exists": "タグは既に存在します",
+      "add_tag": "タグ追加エラー: {error}",
+      "remove_tag": "タグ削除エラー: {error}",
+      "nexus_update": "Mod情報の更新エラー: {error}",
+      "load": "既存のModの読み込みエラー: {error}",
+      "name_exists": "この名前のModは既に存在します",
+      "file_not_found": "ファイルが見つかりません"
+    },
+    "dialogs": {
+      "duplicate": {
+        "title": "Modは既に存在します",
+        "message": "名前\"{name}\"のModは既にインストールされています。更新しますか？",
+        "cancel": "キャンセル",
+        "update": "更新"
+      }
+    }
+  },
+  "dialogs": {
+    "error": {
+      "title": "エラー",
+      "general": "エラーが発生しました: {error}"
+    },
+    "game_path": {
+      "title": "ゲームパスが見つかりません",
+      "message": "設定でゲームパスを指定してください。",
+      "go_to_settings": "設定へ移動"
+    }
+  },
+  "platform": {
+    "errors": {
+      "localappdata_not_found": "LocalAppDataパスが見つかりません",
+      "home_not_found": "ホームディレクトリが見つかりません",
+      "unsupported_os": "サポートされていないOS",
+      "mod_path_not_exists": "Modパスが存在しません: {path}",
+      "game_path_not_exists": "ゲームパスが存在しません: {path}",
+      "install_failed": "Modのインストールエラー: {error}",
+      "game_path_not_found": "ゲームパスが見つかりません"
+    }
+  },
+  "nexus_mods": {
+    "errors": {
+      "invalid_url": "無効なMod URL",
+      "get_info_failed": "Mod情報の取得エラー: {code}"
+    }
+  },
+  "mod_list_item": {
+    "dialogs": {
+      "edit": {
+        "title": "モッドを編集",
+        "name_label": "モッド名",
+        "nexus_url_label": "Nexus Modsリンク",
+        "nexus_url_hint": "https://www.nexusmods.com/marvelrivals/mods/...",
+        "update_info": "情報を更新",
+        "cancel": "キャンセル",
+        "save": "保存",
+        "order_label": "ロード順序",
+        "file_name": "ファイル名: {name}"
+      },
+      "add_tag": {
+        "title": "タグを追加",
+        "label": "タグ名",
+        "hint": "タグ名を入力",
+        "cancel": "キャンセル",
+        "add": "追加"
+      },
+      "update": {
+        "title": "更新が利用可能",
+        "message": "Modの新しいバージョンが利用可能です",
+        "later": "後で",
+        "download": "ダウンロード"
+      },
+      "delete": {
+        "title": "モッドを削除",
+        "message": "モッド \"{name}\" を削除してもよろしいですか？",
+        "cancel": "キャンセル",
+        "confirm": "削除"
+      }
+    },
+    "tooltips": {
+      "add_tag": "タグを追加",
+      "check_updates": "アップデートを確認",
+      "disable": "モッドを無効化",
+      "enable": "モッドを有効化",
+      "delete": "モッドを削除"
+    },
+    "errors": {
+      "update_check": "アップデートの確認中にエラーが発生しました: {error}"
+    },
+    "notifications": {
+      "no_updates": "アップデートはありません"
+    }
+  },
+  "mod_list_panel": {
+    "search": "検索...",
+    "empty_list": {
+      "enabled": "Modをここにドラッグして有効化",
+      "disabled": "Modをここにドラッグして無効化"
+    },
+    "errors": {
+      "toggle": "エラー: {error}"
+    }
+  },
+  "presets": {
+    "title": "プリセット",
+    "save": {
+      "title": "プリセットを保存",
+      "name_label": "プリセット名",
+      "description_label": "説明（オプション）",
+      "cancel": "キャンセル",
+      "save": "保存",
+      "tooltip": "現在のモッドをプリセットとして保存"
+    },
+    "load": {
+      "title": "プリセットを読み込み",
+      "no_presets": "保存されたプリセットはありません",
+      "created_at": "作成日: {date}",
+      "enabled_mods": "有効化されたMod: {count}",
+      "delete": "プリセットを削除",
+      "load": "読み込み",
+      "tooltip": "保存したプリセットを読み込む"
+    },
+    "errors": {
+      "save": "プリセットの保存エラー: {error}",
+      "load": "プリセットの読み込みエラー: {error}",
+      "load_file": "プリセット{file}の読み込みエラー: {error}",
+      "delete": "プリセットの削除エラー: {error}",
+      "name_exists": "この名前のプリセットは既に存在します",
+      "empty_name": "プリセット名を空にすることはできません",
+      "no_enabled_mods": "保存する有効化されたModがありません"
+    },
+    "messages": {
+      "saved": "プリセットが正常に保存されました",
+      "loaded": "プリセットが正常に読み込まれました",
+      "deleted": "プリセットが削除されました"
+    },
+    "confirm": {
+      "load": {
+        "title": "プリセットを読み込み",
+        "message": "プリセットを読み込むと、現在のすべてのModが無効化されます。続行しますか？",
+        "cancel": "キャンセル",
+        "confirm": "続行"
+      },
+      "delete": {
+        "title": "プリセットを削除",
+        "message": "プリセット\"{name}\"を削除してもよろしいですか？",
+        "cancel": "キャンセル",
+        "confirm": "削除"
+      }
+    }
+  },
+  "drop_target": {
+    "drop_here": "ファイルをここにドロップ",
+    "supported_formats": "サポートされている形式: .pak, .zip"
+  },
+  "archive": {
+    "errors": {
+      "unsupported_format": "サポートされていないアーカイブ形式",
+      "unsupported_format_rar": "RAR形式はサポートされていません。.pakファイルまたは.pakファイルを含む.zipアーカイブのみがサポートされています",
+      "no_pak_found": "アーカイブ内に.pakファイルが見つかりません"
+    }
+  }
+} 
