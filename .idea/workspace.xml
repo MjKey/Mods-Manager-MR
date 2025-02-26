@@ -5,13 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5a9ae76e-82d1-4d0b-adf8-39ed840c2ab8" name="Changes" comment="add cover">
-      <changelist_data name="MjKey" email="mj.dot.key@gmail.com" automatic="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="ChangesViewManager" show_ignored="true" />
   <component name="Git.Settings">
     <option name="PREVIOUS_COMMIT_AUTHORS">
       <list>
@@ -62,6 +64,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "dart.analysis.tool.window.visible": "false",
     "deletionFromPopupRequiresConfirmation": "false",
+    "git-widget-placeholder": "main",
     "io.flutter.reload.alreadyRun": "true",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/Felix/OneDrive/Desktop/cs_projects/Mods-Manager-MR",
@@ -70,7 +73,7 @@
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Project",
+    "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.0",
     "settings.editor.selected.configurable": "vcs.Git",
@@ -115,6 +118,7 @@
       <workItem from="1740535143981" duration="5695000" />
       <workItem from="1740572254989" duration="592000" />
       <workItem from="1740573255758" duration="2326000" />
+      <workItem from="1740576245613" duration="513000" />
     </task>
     <task id="LOCAL-00001" summary="fixes to mod enabling">
       <option name="closed" value="true" />
@@ -140,7 +144,15 @@
       <option name="project" value="LOCAL" />
       <updated>1740575917437</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="add cover">
+      <option name="closed" value="true" />
+      <created>1740576276690</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1740576276690</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

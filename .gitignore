@@ -4,6 +4,7 @@
 *.pyc
 *.swp
 .DS_Store
+pubspec.lock
 .atom/
 .build/
 .buildlog/
@@ -43,3 +44,23 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+# Android specific
+android/.gradle/
+android/build/
+
+# iOS specific
+ios/Flutter/.ios/
+ios/Pods/
+ios/Runner.xcworkspace/
+ios/Flutter/Flutter.framework/
+ios/Flutter/Flutter.podspec
+ios/.flutter-plugins
+ios/Podfile.lock
+
+# Build output
+build/
+
+# macOS specific (if applicable)
+macos/Flutter/Flutter.framework/
+macos/Flutter/Flutter.podspec
+/test/
