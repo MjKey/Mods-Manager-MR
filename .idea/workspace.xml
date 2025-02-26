@@ -62,16 +62,18 @@
     "RunOnceActivity.git.unshallow": "true",
     "dart.analysis.tool.window.visible": "false",
     "deletionFromPopupRequiresConfirmation": "false",
-    "git-widget-placeholder": "main",
     "io.flutter.reload.alreadyRun": "true",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/tools/dart-sdk",
+    "last_opened_file_path": "C:/Users/Felix/OneDrive/Desktop/cs_projects/Mods-Manager-MR",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "flutter.settings",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.0",
+    "settings.editor.selected.configurable": "vcs.Git",
     "show.migrate.to.gradle.popup": "false",
     "vue.rearranger.settings.migration": "true"
   }
@@ -112,7 +114,7 @@
       <workItem from="1740535076980" duration="58000" />
       <workItem from="1740535143981" duration="5695000" />
       <workItem from="1740572254989" duration="592000" />
-      <workItem from="1740573255758" duration="2059000" />
+      <workItem from="1740573255758" duration="2326000" />
     </task>
     <task id="LOCAL-00001" summary="fixes to mod enabling">
       <option name="closed" value="true" />
