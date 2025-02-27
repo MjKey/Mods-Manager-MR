@@ -5,7 +5,7 @@ import '../services/localization_service.dart';
 class ModManagerService {
   static final LocalizationService _localization = LocalizationService();
 
-  static String generateFileName(String baseFileName, int order) {
+  static String generateFileName(String baseFileName, [int order=1]) {
     // Гарантируем, что order не меньше 0
     final safeOrder = order.clamp(0, 999);
     final prefix = safeOrder.toString().padLeft(3, '0');
@@ -33,7 +33,7 @@ class ModManagerService {
     }
     // problem TODO
     final baseFileName = path.basename(modPath);
-    print(baseFileName);
+    print("Base file path"+baseFileName);
     final newFileName = generateFileName(extractBaseFileName(baseFileName), order);
     final targetPath = path.join(modsDir, newFileName);
 
