@@ -54,10 +54,11 @@ class ModsProvider with ChangeNotifier {
       // Загружаем сохраненное состояние
       final savedState = await SettingsService.loadModsState();
       final List<Mod> loadedMods = [];
-
+      final List<String> eMods = [];
       await for (final entry in Directory(modsDir).list()) {
         if (entry is File && entry.path.toLowerCase().endsWith('.pak')) {
           final fileName = path.basename(entry.path);
+          eMods.add(fileName);
           final modName = path.basenameWithoutExtension(entry.path)
               .replaceFirst(RegExp(r'^\d{3}_'), ''); // Убираем префикс с order из имени мода
           final character = await CharacterService.detectCharacterFromModPath(entry.path);
@@ -98,37 +99,45 @@ class ModsProvider with ChangeNotifier {
       await for (final entry in Directory(disabledModsDir).list()) {
         if (entry is File && entry.path.toLowerCase().endsWith('.pak')) {
           final fileName = path.basename(entry.path);
-          final modName = path.basenameWithoutExtension(entry.path)
-              .replaceFirst(RegExp(r'^\d{3}_'), '');
-          final character = await CharacterService.detectCharacterFromModPath(entry.path);
-          
-          final order = ModManagerService.extractOrderFromFileName(fileName) ?? loadedMods.length;
-          
+
+          if (!eMods.contains(fileName)){
+            final modName = path.basenameWithoutExtension(entry.path)
+                .replaceFirst(RegExp(r'^\d{3}_'), '');
+          final character = await CharacterService.detectCharacterFromModPath(
+              entry.path);
+
+          final order = ModManagerService.extractOrderFromFileName(fileName) ??
+              loadedMods.length;
+
           // Получаем сохраненное состояние для этого мода
           final savedModState = savedState[modName] as Map<String, dynamic>?;
-          
+
           final mod = Mod(
             name: modName,
             fileName: fileName,
             order: order,
-            description: savedModState?['description'] as String? ?? _localization.translate('mods.default.description'),
+            description: savedModState?['description'] as String? ??
+                _localization.translate('mods.default.description'),
             pakPath: entry.path,
             unpackedPath: entry.path,
-            installDate: savedModState?['installDate'] != null 
+            installDate: savedModState?['installDate'] != null
                 ? DateTime.parse(savedModState!['installDate'] as String)
                 : (await entry.stat()).modified,
             version: savedModState?['version'] as String? ?? '1.0',
             character: character,
-            isEnabled: false, // Моды в папке отключенных модов считаются выключенными
+            isEnabled: false,
+            // Моды в папке отключенных модов считаются выключенными
             nexusUrl: savedModState?['nexusUrl'] as String?,
             nexusImageUrl: savedModState?['nexusImageUrl'] as String?,
-            lastUpdateCheck: savedModState?['lastUpdateCheck'] != null 
+            lastUpdateCheck: savedModState?['lastUpdateCheck'] != null
                 ? DateTime.parse(savedModState!['lastUpdateCheck'] as String)
                 : null,
-            tags: (savedModState?['tags'] as List<dynamic>?)?.cast<String>() ?? [],
+            tags: (savedModState?['tags'] as List<dynamic>?)?.cast<String>() ??
+                [],
           );
 
           loadedMods.add(mod);
+        }
         }
       }
 
