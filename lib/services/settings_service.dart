@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:path/path.dart' as path;
 import '../models/mod.dart';
+import 'mod_manager_service.dart';
 import 'platform_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -124,7 +125,7 @@ class SettingsService {
       final modsState = <String, dynamic>{};
 
       for (final mod in mods) {
-        modsState[mod.name] = {
+        modsState[ModManagerService.generateFileName(mod.name)] = {
           'isEnabled': mod.isEnabled,
           'character': mod.character,
           'description': mod.description,
